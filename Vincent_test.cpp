@@ -1,6 +1,13 @@
 #include <iostream>
 using namespace std;
-
+/*
+    0 = beer
+    1 = 1 bullet
+    2 = 2 bullet
+    3 = gatling
+    4 = bomb
+    5 = arrow
+*/
 typedef struct die
 {
     int val;
