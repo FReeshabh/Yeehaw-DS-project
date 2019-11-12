@@ -1,0 +1,86 @@
+#include <iostream>
+#include <conio.h>
+#include <malloc.h>
+#include <time.h>
+#define MAX 5
+using namespace std;
+
+typedef struct die{
+    int val;
+    bool locked;
+}die;
+
+typedef struct player{
+    struct player *left;
+    struct player *right;
+    struct die *dice[MAX];
+    int hp;
+    int maxhp;
+    int arrowsHeld;
+    int role;
+    int ability;
+}player;
+
+
+void resolveDice(struct player *player);
+//Supporting Functions
+void giveBeer(struct player *player);
+void shoot(struct player *player);
+void gatling(struct player *player);
+void kaboom(struct player *player);
+void resolveArrows(struct player *sheriff);
+int listPlayers(struct player *sheriff);
+
+void sixFeetUnder(struct player *deceased);
+//Supporting Function
+void checkVictoryConditions(struct player *sheriff);
+
+struct player *sheriff;
+
+int main()
+{
+    srand(time(NULL));
+}
+
+int listPlayers(struct player *sheriff)
+{
+    int playerCount = 0;
+    struct player *temp = sheriff;
+    cout << "Sheriff ";
+    do{
+        cout << "["<<playerCount<<"] HP: "<<temp->hp<<" Arrows Held: "<<temp->arrowsHeld<<endl;
+        playerCount++;
+        temp = temp->right;
+    } while(temp != sheriff);
+    return playerCount;
+}
+
+void resolveArrows(struct player *sheriff)
+{
+    struct player *current = sheriff;
+     do{
+         
+    } while(current != sheriff);
+}
+
+void giveBeer(struct player *player)
+{
+    int players = listPlayers(sheriff);
+    int howFarLeft = rand() % players;
+    struct player *recipient = player;
+    while(howFarLeft > 0)
+    {
+        recipient = recipient->left;
+    }
+    if(recipient->hp != recipient->maxhp)
+        recipient->hp++;
+}
+
+void kaboom(struct player *player)
+{
+    for(int i = 0; i < MAX; i++)
+    {
+        player->dice[i]->locked = true;
+    }
+    player->hp--;
+}
