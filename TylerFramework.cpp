@@ -18,37 +18,42 @@ typedef struct player{
     int ability;
     player *left;
     player *right;
-    die *dice[MAX];
 }player;
 
-bool resolveDice(player *currPlayer, int reroll); //master function
+void resolveDice(player *currPlayer, int reroll); //master function
 //Supporting Functions
 void giveBeer(player *currPlayer); //done dice val 0
-void shoot(player *currPlayer); //vince dice val 1/2 
+void shoot(player *currPlayer, int diceVal); //vince dice val 1/2 
 void gatling(player *currPlayer); //vince dice val 3
 void kaboom(player *currPlayer); //done dice val 4
 void resolveArrows(player *sheriff); //done dice val 5
 int listPlayers(player *sheriff); //done
+player *generatePlayers(int playerCount);
+void initializeDice(die *dice[]);
+void clearDice(die *dice[]);
 
 void sixFeetUnder(player *deceased); //done
 //Supporting Function
 int checkVictoryConditions(player *currPlayer); //done
 
 player *sheriff;
-int arrowsRemaining;
+int arrowsRemaining = 10;
+die *dice[MAX];
 int winCondition = 3;
 
 int main()
 {
-    srand(time(NULL));
-    cout << "Player Count Locked at 4\n";
+    srand(time(0));
+	initializeDice(dice);
+    cout << "Player Count Locked at 4 + Sheriff \n";
     int playercount = 4;
-    //cin >> playercount;
     generatePlayers(playercount);
     player *currentPlayer = sheriff;
-    while(checkVictoryConditions(currentPlayer) == 3)
+    while(winCondition == 3)
     {
         resolveDice(currentPlayer, 0);
+		clearDice(dice);
+		winCondition = checkVictoryConditions(currentPlayer);
         currentPlayer = currentPlayer->right;
     }
 }
@@ -62,12 +67,13 @@ int listPlayers(player *sheriff)
         cout << "["<<playerCount<<"] HP: "<<temp->hp<<" Arrows Held: "<<temp->arrowsHeld;
         if(temp->hp == 0)
         {
-            cout << " DEAD" <<endl;
+            cout << " DEAD";
         }
         else
         {
             playerCount++;
         }
+		cout <<endl;
         temp = temp->right;
     } while(temp != sheriff);
     //playerCount returns the amount of live players still in the game.
@@ -88,15 +94,24 @@ void resolveArrows(player *sheriff)
 
 void giveBeer(player *currPlayer)
 {
+	cout << "Giving Beer...\n";
     int players = listPlayers(sheriff);
     int howFarLeft = rand() % players;
     player *recipient = currPlayer;
     while(howFarLeft > 0)
     {
         recipient = recipient->left;
+		howFarLeft--;
     }
     if(recipient->hp != recipient->maxhp)
+	{
+		cout << "Recipient was healed \n";
         recipient->hp++;
+	}
+	else
+	{
+		cout << "Recipient already maxed out \n";
+	}
 }
 
 void kaboom(player *currPlayer)
@@ -104,7 +119,7 @@ void kaboom(player *currPlayer)
     cout << "Dynamite Triggered: Rerolls Restricted\n";
     for(int i = 0; i < MAX; i++)
     {
-        currPlayer->dice[i]->locked = true;
+        dice[i]->locked = true;
     }
     currPlayer->hp--;
 }
@@ -112,8 +127,9 @@ void kaboom(player *currPlayer)
 int checkVictoryConditions(player *currPlayer)
 {
     int outlaws = 0;
-    player *current = currPlayer->right;
-    do{
+    player *current = currPlayer;
+	do{
+		cout << "Current Role is " << current->role <<endl;
         if(current->role == 2 || current->role == 3)
         {
             cout << "Outlaw Detected\n";
@@ -149,6 +165,7 @@ int checkVictoryConditions(player *currPlayer)
 
 void gatling(player *currPlayer)
 {
+	cout << "Gatling Effect Triggered \n";
     player *enemy;
     enemy = currPlayer->right;
     while(enemy != currPlayer)
@@ -167,51 +184,62 @@ void sixFeetUnder(player *deceased)
 {
     deceased->left->right = deceased->right;
     deceased->right->left = deceased->left;
-    cout << "Player of Role " << deceased->role << "has died."<<endl;
+    cout << "Player of Role " << deceased->role << " has died."<<endl;
 }
 
 void rollDice(player *currPlayer)
 {
+	cout << "Player of role " << currPlayer->role << " is rolling.\n";
     for(int i = 0; i < MAX; i++)
     {
-        if(currPlayer->dice[i]->locked == false)
+        if(dice[i]->locked == false)
         {
-            currPlayer->dice[i]->val = (rand()%6);
+            dice[i]->val = (rand()%6);
+			cout << "Dice["<<i<<"] rolled as " << dice[i]->val<<endl;
         }
+		else{
+			cout << "Dice["<<i<<"] is locked as " << dice[i]->val<<endl;
+		}
     }
 }
 
-bool resolveDice(player *currPlayer, int reroll)
+void resolveDice(player *currPlayer, int reroll)
 {
+	cout << "Player of role " << currPlayer->role << " is resolving their turn.\n";
+	rollDice(currPlayer);
     int gats = 0;
     //Holds Amount of Gatling Die
     int dyna = 0;
     //Holds Amount of Dynamite Die
     for(int i = 0; i < MAX; i++)
     {
-        if(currPlayer->dice[i]->val == 4)
+        if(dice[i]->val == 4)
         {
-            currPlayer->dice[i]->locked = true;
+            dice[i]->locked = true;
             dyna++;
         }
-        if(currPlayer->dice[i]->val == 5)
+        if(dice[i]->val == 5)
         {
             currPlayer->arrowsHeld++;
             arrowsRemaining--;
         }
     }
-    if(reroll = 2 || dyna == 3)
+    if(reroll == 2 || dyna == 3)
     {
+		if(dyna == 3)
+		{
+			kaboom(currPlayer);
+		}
         cout << "Max Rerolls Reached \n";
         for(int i = 0; i < MAX; i++)
         {
-            switch (currPlayer->dice[i]->val)
+            switch (dice[i]->val)
             {
                 case 0: giveBeer(currPlayer);
                 break;
-                case 1: shoot(currPlayer, currPlayer->dice[i]->val);
+                case 1: shoot(currPlayer, dice[i]->val);
                 break;
-                case 2: shoot(currPlayer, currPlayer->dice[i]->val);
+                case 2: shoot(currPlayer, dice[i]->val);
                 break;
                 case 3: 
                     gats++;
@@ -220,23 +248,19 @@ bool resolveDice(player *currPlayer, int reroll)
                         gatling(currPlayer);
                     }
                 break;
-                default: cout << "Vince what did you dooooooo \n";
             }
         }
-        return true;
     }
     else
     {
-        cout << "Rolling Dice\n";
-        rollDice(currPlayer);
         cout << "Selecting dice to keep locked in..."<<endl;
         for(int i = 0; i < MAX; i++)
         {
-            if(currPlayer->dice[i]->locked == false)
+            if(dice[i]->locked == false)
             {
-                if((rand()%1) == 0)
+                if((rand()% 2) == 0)
                 {
-                    currPlayer->dice[i]->locked = true;
+                    dice[i]->locked = true;
                 }
             }
         }
@@ -311,13 +335,14 @@ void shoot(player *currPlayer, int diceVal)
 
 player *generatePlayers(int playerCount)
 {
-    sheriff = (player*)malloc(sizeof(player));
+	player *newSheriff = (player*)malloc(sizeof(player));
+    sheriff = newSheriff;
     sheriff->maxhp = 11;
     sheriff->hp = 11;
     sheriff->role = 0;
     sheriff->arrowsHeld = 0;
     player *prevPlayer = sheriff;
-    for(int i = 0; i <= playerCount; i++)
+    for(int i = 0; i < playerCount; i++)
     {
         player *newPlayer = (player*)malloc(sizeof(player));
         newPlayer->maxhp = 9;
@@ -326,7 +351,7 @@ player *generatePlayers(int playerCount)
         newPlayer->role = 2;
         newPlayer->left = prevPlayer;
         prevPlayer->right = newPlayer;
-        prevPlayer = newPlayer;
+		prevPlayer = newPlayer;
     }
     sheriff->left = prevPlayer;
     prevPlayer->right = sheriff;
@@ -334,7 +359,22 @@ player *generatePlayers(int playerCount)
     return prevPlayer->right;
 }
 
-void playerTurn(player *currPlayer)
+void initializeDice(die *dice[])
 {
-    resolveDice(currPlayer,0);
+	for(int i = 0; i < MAX; i++)
+	{
+		die *newDie = (die*)malloc(sizeof(die));
+		dice[i] = newDie;
+		dice[i]->locked = false;
+		dice[i]->val = 0;
+	}
+}
+
+void clearDice(die *dice[])
+{
+	for(int i = 0; i < MAX; i++)
+	{
+		dice[i]->locked = false;
+		dice[i]->val = 0;
+	}
 }
