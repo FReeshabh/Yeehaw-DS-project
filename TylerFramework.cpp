@@ -62,12 +62,23 @@ int listPlayers(player *sheriff)
 {
     int playerCount = 0;
     player *temp = sheriff;
-    cout << "Sheriff ";
     do{
         cout << "["<<playerCount<<"] HP: "<<temp->hp<<" Arrows Held: "<<temp->arrowsHeld;
+		if(temp->role == 0)
+		{
+			cout << " SHERIFF ";
+		}
+		if(temp->role == 2)
+		{
+			cout << " OUTLAW ";
+		}
+		if(temp->role == 3)
+		{
+			cout << " RENEGADE ";
+		}
         if(temp->hp == 0)
         {
-            cout << " DEAD";
+            cout << " DEAD ";
         }
         else
         {
@@ -82,6 +93,7 @@ int listPlayers(player *sheriff)
 
 void resolveArrows(player *sheriff)
 {
+	cout << "RESOLVING ARROWS\n";
     player *current = sheriff;
      do{
          current->hp -= current->arrowsHeld;
@@ -129,10 +141,10 @@ int checkVictoryConditions(player *currPlayer)
     int outlaws = 0;
     player *current = currPlayer;
 	do{
-		cout << "Current Role is " << current->role <<endl;
+		//cout << "Current Role is " << current->role <<endl;
         if(current->role == 2 || current->role == 3)
         {
-            cout << "Outlaw Detected\n";
+            //cout << "Outlaw Detected\n";
             outlaws++;
         }
         current = current->right;
@@ -157,7 +169,7 @@ int checkVictoryConditions(player *currPlayer)
 
     else
     {
-        cout << "No Win Condition has been met."<<endl;
+        //cout << "No Win Condition has been met."<<endl;
         return 3;
     }
     
@@ -171,7 +183,7 @@ void gatling(player *currPlayer)
     while(enemy != currPlayer)
     {
         (enemy->hp)--;
-        if(enemy->hp == 0)
+        if(enemy->hp <= 0)
         {
             sixFeetUnder(enemy);
             winCondition = checkVictoryConditions(currPlayer);
@@ -274,14 +286,10 @@ void shoot(player *currPlayer, int diceVal)
     int currPlayer_count = listPlayers(sheriff);
     if(diceVal == 1)
     {
-        while(currPlayer->right->hp == 0)
-        {
-            currPlayer = currPlayer->right;
-        }
         if(random_target == 1)
         {
             currPlayer->right->hp--;
-            if(currPlayer->right->hp == 0)
+            if(currPlayer->right->hp <= 0)
             {
                 sixFeetUnder(currPlayer->right);
                 checkVictoryConditions(currPlayer);
@@ -291,7 +299,7 @@ void shoot(player *currPlayer, int diceVal)
         else
         {
             currPlayer->left->hp--;
-            if(currPlayer->left->hp == 0)
+            if(currPlayer->left->hp <= 0)
             {
                 sixFeetUnder(currPlayer->left);
                 checkVictoryConditions(currPlayer);
@@ -304,7 +312,7 @@ void shoot(player *currPlayer, int diceVal)
         if(currPlayer_count == 2)
         {
             currPlayer->right->hp--;
-            if(currPlayer->right->hp == 0)
+            if(currPlayer->right->hp <= 0)
             {
                 sixFeetUnder(currPlayer->right);
                 checkVictoryConditions(currPlayer);
@@ -313,7 +321,7 @@ void shoot(player *currPlayer, int diceVal)
         if(random_target == 1)
         {
             currPlayer->right->right->hp--;
-            if(currPlayer->right->right->hp == 0)
+            if(currPlayer->right->right->hp <= 0)
             {
                 sixFeetUnder(currPlayer->right->right);
                 checkVictoryConditions(currPlayer);
@@ -323,7 +331,7 @@ void shoot(player *currPlayer, int diceVal)
         else
         {
             currPlayer->left->left->hp--;
-            if(currPlayer->left->left->hp == 0)
+            if(currPlayer->left->left->hp <= 0)
             {
                 sixFeetUnder(currPlayer->left->left);
                 checkVictoryConditions(currPlayer);
