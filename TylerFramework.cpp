@@ -1,3 +1,7 @@
+//BIG PROJECT Part 1
+//Tyler Nee, Vincent Hew, Rishabh Tewari
+//Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
+
 #include <iostream>
 #include <conio.h>
 #include <malloc.h>
@@ -45,8 +49,9 @@ int main()
 {
     srand(time(0));
 	initializeDice(dice);
-    cout << "Player Count Locked at 4 + Sheriff \n";
-    int playercount = 4;
+    cout << "How many players are in the game besides the Sheriff? \n";
+    int playercount = 0;
+	cin >> playercount;
     generatePlayers(playercount);
     player *currentPlayer = sheriff;
     while(winCondition == 3)
@@ -166,7 +171,7 @@ int checkVictoryConditions(player *currPlayer)
         return 0;
     }
 
-    if(sheriff->hp == 0 && listPlayers(currPlayer) == 1)
+    if(listPlayers(currPlayer) == 1 && currPlayer->role == 3)
     {
         cout << "The Renegade is the last man standing. \nTHE RENEGADE WINS \n";
         return 1;
