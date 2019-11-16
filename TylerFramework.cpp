@@ -51,6 +51,11 @@ int main()
     player *currentPlayer = sheriff;
     while(winCondition == 3)
     {
+		while(currentPlayer->hp == 0)
+		{
+			currentPlayer = currentPlayer->right;
+			sixFeetUnder(currentPlayer->left);
+		}
         resolveDice(currentPlayer, 0);
 		clearDice(dice);
 		winCondition = checkVictoryConditions(currentPlayer);
@@ -76,7 +81,8 @@ int listPlayers(player *sheriff)
 		{
 			cout << " RENEGADE ";
 		}
-        if(temp->hp == 0)
+		
+        if(temp->hp <= 0)
         {
             cout << " DEAD ";
         }
@@ -98,6 +104,10 @@ void resolveArrows(player *sheriff)
      do{
          current->hp -= current->arrowsHeld;
          arrowsRemaining += current->arrowsHeld;
+		 if(current->hp <= 0)
+		 {
+			 sixFeetUnder(current);
+		 }
          current->arrowsHeld = 0;
          current = current->right;
     } while(current != sheriff);
@@ -152,21 +162,20 @@ int checkVictoryConditions(player *currPlayer)
 
     if(outlaws == 0)
     {
-        cout << "The Sheriff has driven crime from the town.\n THE LAW WINS \n";
+        cout << "The Sheriff has driven crime from the town.\nTHE LAW WINS \n";
         return 0;
     }
 
     if(sheriff->hp == 0 && listPlayers(currPlayer) == 1)
     {
-        cout << "The Renegade is the last man standing. \n THE RENEGADE WINS \n";
+        cout << "The Renegade is the last man standing. \nTHE RENEGADE WINS \n";
         return 1;
     }
     else if(sheriff->hp == 0)
     {
-        cout << "The Outlaws have killed the Sheriff. \n THE OUTLAWS WIN \n";
+        cout << "The Outlaws have killed the Sheriff. \nTHE OUTLAWS WIN \n";
         return 2;
     }
-
     else
     {
         //cout << "No Win Condition has been met."<<endl;
@@ -178,6 +187,8 @@ int checkVictoryConditions(player *currPlayer)
 void gatling(player *currPlayer)
 {
 	cout << "Gatling Effect Triggered \n";
+	arrowsRemaining += currPlayer->arrowsHeld;
+	currPlayer->arrowsHeld = 0;
     player *enemy;
     enemy = currPlayer->right;
     while(enemy != currPlayer)
@@ -232,10 +243,20 @@ void resolveDice(player *currPlayer, int reroll)
         }
         if(dice[i]->val == 5)
         {
+			cout << "Player took an arrow\n";
             currPlayer->arrowsHeld++;
             arrowsRemaining--;
+			if(arrowsRemaining == 0)
+			{
+				//resolveArrows(currPlayer);
+			}
         }
     }
+	if(currPlayer->hp <= 0)
+	{
+		cout << "Player died during own turn.\n";
+		sixFeetUnder(currPlayer);
+	}
     if(reroll == 2 || dyna == 3)
     {
 		if(dyna == 3)
@@ -282,6 +303,7 @@ void resolveDice(player *currPlayer, int reroll)
 
 void shoot(player *currPlayer, int diceVal)
 {
+	cout << "Shots fired! \n";
     int random_target = (rand() % (2 - 1 + 1)) + 1;
     int currPlayer_count = listPlayers(sheriff);
     if(diceVal == 1)
@@ -292,7 +314,7 @@ void shoot(player *currPlayer, int diceVal)
             if(currPlayer->right->hp <= 0)
             {
                 sixFeetUnder(currPlayer->right);
-                checkVictoryConditions(currPlayer);
+                //checkVictoryConditions(currPlayer);
             }
             return;
         }
@@ -302,7 +324,7 @@ void shoot(player *currPlayer, int diceVal)
             if(currPlayer->left->hp <= 0)
             {
                 sixFeetUnder(currPlayer->left);
-                checkVictoryConditions(currPlayer);
+                //checkVictoryConditions(currPlayer);
             }
             return;
         }
@@ -315,7 +337,7 @@ void shoot(player *currPlayer, int diceVal)
             if(currPlayer->right->hp <= 0)
             {
                 sixFeetUnder(currPlayer->right);
-                checkVictoryConditions(currPlayer);
+                //checkVictoryConditions(currPlayer);
             }
         }
         if(random_target == 1)
@@ -324,7 +346,7 @@ void shoot(player *currPlayer, int diceVal)
             if(currPlayer->right->right->hp <= 0)
             {
                 sixFeetUnder(currPlayer->right->right);
-                checkVictoryConditions(currPlayer);
+                //checkVictoryConditions(currPlayer);
             }
             return;
         }
@@ -334,7 +356,7 @@ void shoot(player *currPlayer, int diceVal)
             if(currPlayer->left->left->hp <= 0)
             {
                 sixFeetUnder(currPlayer->left->left);
-                checkVictoryConditions(currPlayer);
+                //checkVictoryConditions(currPlayer);
             }
             return;
         }
