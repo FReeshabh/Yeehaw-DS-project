@@ -3,9 +3,6 @@
 //Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
 
 #include <iostream>
-#include <conio.h>
-#include <malloc.h>
-#include <time.h>
 #define MAX 5
 using namespace std;
 
@@ -22,12 +19,12 @@ typedef struct player{
     int ability;
     player *left;
     player *right;
-}player;
+} player;
 
 void resolveDice(player *currPlayer, int reroll); //master function
 //Supporting Functions
 void giveBeer(player *currPlayer); //done dice val 0
-void shoot(player *currPlayer, int diceVal); //vince dice val 1/2 
+void shoot(player *currPlayer, int diceVal); //vince dice val 1/2
 void gatling(player *currPlayer); //vince dice val 3
 void kaboom(player *currPlayer); //done dice val 4
 void resolveArrows(player *sheriff); //done dice val 5
@@ -48,10 +45,10 @@ int winCondition = 3;
 int main()
 {
     srand(time(0));
-	initializeDice(dice);
+    initializeDice(dice);
     cout << "How many players are in the game besides the Sheriff? \n";
     int playercount = 0;
-	cin >> playercount;
+    cin >> playercount;
     generatePlayers(playercount);
     player *currentPlayer = sheriff;
     while(winCondition == 3)
@@ -86,7 +83,7 @@ int listPlayers(player *sheriff)
 		{
 			cout << " RENEGADE ";
 		}
-		
+
         if(temp->hp <= 0)
         {
             cout << " DEAD ";
@@ -186,7 +183,7 @@ int checkVictoryConditions(player *currPlayer)
         //cout << "No Win Condition has been met."<<endl;
         return 3;
     }
-    
+
 }
 
 void gatling(player *currPlayer)
@@ -279,7 +276,7 @@ void resolveDice(player *currPlayer, int reroll)
                 break;
                 case 2: shoot(currPlayer, dice[i]->val);
                 break;
-                case 3: 
+                case 3:
                     gats++;
                     if(gats == 3)
                     {
@@ -366,7 +363,7 @@ void shoot(player *currPlayer, int diceVal)
             return;
         }
     }
-} 
+}
 
 player *generatePlayers(int playerCount)
 {
