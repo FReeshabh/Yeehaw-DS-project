@@ -3,6 +3,9 @@
 //Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
 
 #include <iostream>
+#include <conio.h>
+#include <malloc.h>
+#include <time.h>
 #define MAX 5
 using namespace std;
 
@@ -17,14 +20,15 @@ typedef struct player{
     int arrowsHeld;
     int role; //0 Sheriff, 1 Deputy, 2 Outlaw, 3 Renegade
     int ability;
+	int tag;
     player *left;
     player *right;
-} player;
+}player;
 
 void resolveDice(player *currPlayer, int reroll); //master function
 //Supporting Functions
 void giveBeer(player *currPlayer); //done dice val 0
-void shoot(player *currPlayer, int diceVal); //vince dice val 1/2
+void shoot(player *currPlayer, int diceVal); //vince dice val 1/2 
 void gatling(player *currPlayer); //vince dice val 3
 void kaboom(player *currPlayer); //done dice val 4
 void resolveArrows(player *sheriff); //done dice val 5
@@ -45,10 +49,10 @@ int winCondition = 3;
 int main()
 {
     srand(time(0));
-    initializeDice(dice);
+	initializeDice(dice);
     cout << "How many players are in the game besides the Sheriff? \n";
     int playercount = 0;
-    cin >> playercount;
+	cin >> playercount;
     generatePlayers(playercount);
     player *currentPlayer = sheriff;
     while(winCondition == 3)
@@ -83,7 +87,7 @@ int listPlayers(player *sheriff)
 		{
 			cout << " RENEGADE ";
 		}
-
+		
         if(temp->hp <= 0)
         {
             cout << " DEAD ";
@@ -99,20 +103,22 @@ int listPlayers(player *sheriff)
     return playerCount;
 }
 
-void resolveArrows(player *sheriff)
+void resolveArrows(player *currPlayer)
 {
 	cout << "RESOLVING ARROWS\n";
-    player *current = sheriff;
+    player *current = currPlayer;
      do{
          current->hp -= current->arrowsHeld;
          arrowsRemaining += current->arrowsHeld;
 		 if(current->hp <= 0)
 		 {
 			 sixFeetUnder(current);
+			 cout << "SixFeetUnder ran successfully "<<endl;
 		 }
          current->arrowsHeld = 0;
          current = current->right;
-    } while(current != sheriff);
+		 cout << "CurrentPlayer is " << current->tag << endl;
+    } while(current != currPlayer);
     cout << "Arrows Resolved...\n";
 }
 
@@ -183,7 +189,7 @@ int checkVictoryConditions(player *currPlayer)
         //cout << "No Win Condition has been met."<<endl;
         return 3;
     }
-
+    
 }
 
 void gatling(player *currPlayer)
@@ -209,7 +215,7 @@ void sixFeetUnder(player *deceased)
 {
     deceased->left->right = deceased->right;
     deceased->right->left = deceased->left;
-    cout << "Player of Role " << deceased->role << " has died."<<endl;
+    cout << "Player " << deceased->tag << " has died."<<endl;
 }
 
 void rollDice(player *currPlayer)
@@ -243,14 +249,14 @@ void resolveDice(player *currPlayer, int reroll)
             dice[i]->locked = true;
             dyna++;
         }
-        if(dice[i]->val == 5)
+        if(dice[i]->val == 5 && dice[i]->locked == false)
         {
 			cout << "Player took an arrow\n";
             currPlayer->arrowsHeld++;
             arrowsRemaining--;
 			if(arrowsRemaining == 0)
 			{
-				//resolveArrows(currPlayer);
+				resolveArrows(currPlayer);
 			}
         }
     }
@@ -258,6 +264,7 @@ void resolveDice(player *currPlayer, int reroll)
 	{
 		cout << "Player died during own turn.\n";
 		sixFeetUnder(currPlayer);
+		currPlayer = currPlayer->right;
 	}
     if(reroll == 2 || dyna == 3)
     {
@@ -276,7 +283,7 @@ void resolveDice(player *currPlayer, int reroll)
                 break;
                 case 2: shoot(currPlayer, dice[i]->val);
                 break;
-                case 3:
+                case 3: 
                     gats++;
                     if(gats == 3)
                     {
@@ -308,62 +315,30 @@ void shoot(player *currPlayer, int diceVal)
 	cout << "Shots fired! \n";
     int random_target = (rand() % (2 - 1 + 1)) + 1;
     int currPlayer_count = listPlayers(sheriff);
+	player *target;
+	player *currentPlayer = currPlayer;
     if(diceVal == 1)
     {
         if(random_target == 1)
-        {
-            currPlayer->right->hp--;
-            if(currPlayer->right->hp <= 0)
-            {
-                sixFeetUnder(currPlayer->right);
-                //checkVictoryConditions(currPlayer);
-            }
-            return;
-        }
+            target = currentPlayer->right;
         else
-        {
-            currPlayer->left->hp--;
-            if(currPlayer->left->hp <= 0)
-            {
-                sixFeetUnder(currPlayer->left);
-                //checkVictoryConditions(currPlayer);
-            }
-            return;
-        }
-    }
+			target = currentPlayer->left;
+	}
     else if(diceVal == 2)
     {
         if(currPlayer_count == 2)
-        {
-            currPlayer->right->hp--;
-            if(currPlayer->right->hp <= 0)
-            {
-                sixFeetUnder(currPlayer->right);
-                //checkVictoryConditions(currPlayer);
-            }
-        }
+			target = currentPlayer->right;
         if(random_target == 1)
-        {
-            currPlayer->right->right->hp--;
-            if(currPlayer->right->right->hp <= 0)
-            {
-                sixFeetUnder(currPlayer->right->right);
-                //checkVictoryConditions(currPlayer);
-            }
-            return;
-        }
+			target = currentPlayer->right->right;
         else
-        {
-            currPlayer->left->left->hp--;
-            if(currPlayer->left->left->hp <= 0)
-            {
-                sixFeetUnder(currPlayer->left->left);
-                //checkVictoryConditions(currPlayer);
-            }
-            return;
-        }
+			target = currentPlayer->left->left;
     }
-}
+	if(target->hp <= 0)
+	{
+		sixFeetUnder(target);
+		checkVictoryConditions(currPlayer);
+	}
+} 
 
 player *generatePlayers(int playerCount)
 {
@@ -373,6 +348,7 @@ player *generatePlayers(int playerCount)
     sheriff->hp = 11;
     sheriff->role = 0;
     sheriff->arrowsHeld = 0;
+	sheriff->tag = 0;
     player *prevPlayer = sheriff;
     for(int i = 0; i < playerCount; i++)
     {
@@ -381,6 +357,7 @@ player *generatePlayers(int playerCount)
         newPlayer->hp = 9;
         newPlayer->arrowsHeld = 0;
         newPlayer->role = 2;
+		newPlayer->tag = i+1;
         newPlayer->left = prevPlayer;
         prevPlayer->right = newPlayer;
 		prevPlayer = newPlayer;
