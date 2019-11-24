@@ -29,7 +29,6 @@ typedef struct player{
 
 void resolveDice(player *currPlayer, int reroll); //master function
 //Supporting Functions
-void giveBeer(player *currPlayer); //done dice val 0
 void shoot(player *currPlayer, int diceVal); //vince dice val 1/2 
 void kaboom(player *currPlayer); //done dice val 4
 void resolveArrows(player *sheriff); //done dice val 5
@@ -42,6 +41,7 @@ void display(player *first_player);
 player *createPlayer(int position);
 player *generatePlayers(int playerCount);
 void assign_role(player *current_player, int total_playerCount);
+void giveBeer(player *currPlayer, int total_playerCount);
 void rollDice(player *currPlayer);
 void initializeDice(die *dice[]);
 void clearDice(die *dice[]);
@@ -75,10 +75,14 @@ int main()
     }
     */
    for(int i = 0; i < 10; i++) {
-        cout << "gatling testing: " << i+1 << " times" << endl;
         gatling(first_player);
         display(first_player);
-   }
+    }
+
+    giveBeer(first_player, initial_playerCout);
+    display(first_player);
+
+
 //player_dead_status[8]
     /*
     while(winCondition == 3)
@@ -150,25 +154,22 @@ void resolveArrows(player *currPlayer)
     cout << "Arrows Resolved...\n";
 }
 
-void giveBeer(player *currPlayer)
-{
-	cout << "Giving Beer...\n";
-    int players = listPlayers(sheriff);
-    int howFarLeft = rand() % players;
+void giveBeer(player *currPlayer, int total_playerCount) {
+	cout << "Giving Beer..." << endl;
+    int target_position = rand() % total_playerCount;
     player *recipient = currPlayer;
-    while(howFarLeft > 0)
-    {
-        recipient = recipient->left;
-		howFarLeft--;
+    while(player_dead_status[target_position] != false) {
+        target_position = rand() % total_playerCount;
     }
-    if(recipient->hp != recipient->maxhp)
-	{
-		cout << "Recipient was healed \n";
+    while(recipient->tag != target_position) {
+        recipient = recipient->right;
+    }
+    if(recipient->hp != recipient->maxhp) {
+		cout << "Recipient " << recipient->tag << " was healed" << endl;
         recipient->hp++;
 	}
-	else
-	{
-		cout << "Recipient already maxed out \n";
+	else {
+		cout << "Recipient " << recipient->tag << " already maxed out" << endl;
 	}
 }
 
@@ -290,8 +291,8 @@ void resolveDice(player *currPlayer, int reroll) {
         cout << "Max Rerolls Reached \n";
         for(int i = 0; i < MAX; i++) {
             switch (dice[i]->val) {
-                case 0: giveBeer(currPlayer);
-                break;
+                //case 0: giveBeer(currPlayer);
+                //break;
                 case 1: shoot(currPlayer, dice[i]->val);
                 break;
                 case 2: shoot(currPlayer, dice[i]->val);
