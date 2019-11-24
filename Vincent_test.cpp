@@ -74,27 +74,8 @@ int main()
         clearDice(dice);
     }
     */
-   for(int i = 0; i < 8; i++) {
-       cout << "lower hp squence" << endl;
-       gatling(first_player);
-       display(first_player);
-   }
-   cout << "shoot testing" << endl;
-   cout << "**Testing ONE bullet" << endl;
-   for(int i = 0; i < 5; i++) {
-        cout << "Shot fire: " << i+1 << " times" << endl;
-        shoot(first_player, 1, initial_playerCout);
-        display(first_player);
-   }
-   cout << "**Testing TWO bullet" << endl;
-   for(int i = 0; i < 5; i++) {
-        cout << "Shot fire: " << i+1 << " times" << endl;
-        shoot(first_player, 2, initial_playerCout);
-        display(first_player);
-   }
 
 
-//player_dead_status[8]
     /*
     while(winCondition == 3)
     {
