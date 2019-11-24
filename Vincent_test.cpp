@@ -1,11 +1,13 @@
 //BIG PROJECT Part 1
 //Tyler Nee, Vincent Hew, Rishabh Tewari
 //Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
+//Vincent version 1.1.0
 
 #include <iostream>
 #include <conio.h>
 #include <malloc.h>
 #include <time.h>
+#include <string.h>
 #define MAX 5
 using namespace std;
 
@@ -36,11 +38,19 @@ int listPlayers(player *sheriff); //done
 player *generatePlayers(int playerCount);
 void initializeDice(die *dice[]);
 void clearDice(die *dice[]);
-
+player *createPlayer(int position);
 void sixFeetUnder(player *deceased); //done
+void display(player *first_player);
+void assign_role(player *current_player, int total_playerCount);
 //Supporting Function
 int checkVictoryConditions(player *currPlayer); //done
-
+//**
+player *first_player = NULL;
+int deputy_count = 0;
+int outlaws_count = 0;
+int renegades_count = 0;
+bool role_available[4];
+//**
 player *sheriff;
 int arrowsRemaining = 10;
 die *dice[MAX];
@@ -50,11 +60,11 @@ int main()
 {
     srand(time(0));
 	initializeDice(dice);
-    cout << "How many players are in the game besides the Sheriff? \n";
-    int playercount = 0;
-	cin >> playercount;
-    generatePlayers(playercount);
-    player *currentPlayer = sheriff;
+    int initial_playerCout = (rand() % (8 - 4 + 1)) + 4;
+    cout << "Player initial amount: " << initial_playerCout << endl;
+    first_player = generatePlayers(initial_playerCout);
+    display(first_player);
+    /*
     while(winCondition == 3)
     {
 		while(currentPlayer->hp == 0)
@@ -67,6 +77,7 @@ int main()
 		winCondition = checkVictoryConditions(currentPlayer);
         currentPlayer = currentPlayer->right;
     }
+    */
 }
 
 int listPlayers(player *sheriff)
@@ -340,32 +351,110 @@ void shoot(player *currPlayer, int diceVal)
 	}
 } 
 
+player *createPlayer(int position) {
+    player *newPlayer = (player*)malloc(sizeof(player));
+    int initial_playerCout = (rand() % (8 - 4 + 1)) + 4;
+    newPlayer->hp = 9;
+    newPlayer->maxhp = 9;
+    newPlayer->arrowsHeld = 0;
+    newPlayer->tag = position;
+    newPlayer->left = NULL;
+    newPlayer->right = NULL;
+    return newPlayer;
+}
+
 player *generatePlayers(int playerCount)
 {
-	player *newSheriff = (player*)malloc(sizeof(player));
-    sheriff = newSheriff;
-    sheriff->maxhp = 11;
-    sheriff->hp = 11;
-    sheriff->role = 0;
-    sheriff->arrowsHeld = 0;
-	sheriff->tag = 0;
-    player *prevPlayer = sheriff;
-    for(int i = 0; i < playerCount; i++)
-    {
-        player *newPlayer = (player*)malloc(sizeof(player));
-        newPlayer->maxhp = 9;
-        newPlayer->hp = 9;
-        newPlayer->arrowsHeld = 0;
-        newPlayer->role = 2;
-		newPlayer->tag = i+1;
-        newPlayer->left = prevPlayer;
-        prevPlayer->right = newPlayer;
-		prevPlayer = newPlayer;
+    player *new_player, *prev_player;
+    first_player = createPlayer(0);
+    assign_role(first_player, playerCount);
+    prev_player = first_player;
+    for(int i = 1; i < playerCount; i++) {
+        new_player = createPlayer(i);
+        assign_role(new_player, playerCount);
+        new_player->left = prev_player;
+        prev_player->right = new_player;
+        prev_player = new_player;
     }
-    sheriff->left = prevPlayer;
-    prevPlayer->right = sheriff;
-    prevPlayer->role = 3;
-    return prevPlayer->right;
+    prev_player->right = first_player;
+    first_player->left = prev_player;
+    return first_player;
+}
+
+void assign_role(player *current_player, int total_playerCount) {
+    int role_position = (rand() % (3 - 0 + 1)) + 0;
+    int i;
+    if(role_available[role_position] != false) {
+    }
+    else if(role_available[role_position] == false) {
+    }
+    if(total_playerCount == 4) {
+        role_available[1] = true;
+    }
+    while(role_available[role_position] != false) {
+        role_position = (rand() % (3 - 0 + 1)) + 0;
+    }
+    if(role_position == 0) {
+        current_player->role = role_position;
+        current_player->maxhp = current_player->maxhp+2;
+        current_player->hp = current_player->hp+2;
+        role_available[0] = true;
+    }
+    else if(role_position == 1) {
+        if(total_playerCount == 5 || total_playerCount == 6) {
+            current_player->role = role_position;
+            role_available[1] = true;
+        }
+        else {
+            current_player->role = role_position;
+            deputy_count++;
+            if(deputy_count == 2) {
+                role_available[1] = true;
+            }
+        }
+    }
+    else if(role_position == 2) {
+        if(total_playerCount == 4 || total_playerCount == 5) {
+            current_player->role = role_position;
+            outlaws_count++;
+            if(outlaws_count == 2) {
+                role_available[2] = true;
+            }
+        }
+        else {
+            current_player->role = role_position;
+            outlaws_count++;
+            if(outlaws_count == 3) {
+                role_available[2] = true;
+            }
+        }
+    }
+    else if(role_position == 3) {
+        if(total_playerCount == 8) {
+            current_player->role = role_position;
+            renegades_count++;
+            if(renegades_count == 2) {
+                role_available[3] = true;
+            }
+        }
+        else {
+            current_player->role = role_position;
+            role_available[3] = true;
+        }
+    }
+}
+//displayer player in the game
+void display(player *first_player) {
+    player *current;
+    current = first_player;
+    cout << "current player tag: " << current->tag << "\trole:" << current->role;
+    cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
+    current = current->right;
+    while(current->tag != 0) {
+        cout << "current player tag: " << current->tag << "\trole:" << current->role;
+        cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
+        current = current->right;
+    }
 }
 
 void initializeDice(die *dice[])
