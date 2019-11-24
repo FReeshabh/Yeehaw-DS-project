@@ -342,26 +342,22 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
         if(player_dead_status[i] == false)
             alive_playerCount++;
     }
-    cout << "current alive count: " << alive_playerCount << endl;
     if(diceVal == 1) {
         if(random_target == 1) {
             while(player_dead_status[current->right->tag] != false) {
                 current = current->right;
             }
             target = current->right;
-            cout << "*shot right" << endl;
         }
         else {
             while(player_dead_status[current->left->tag] != false) {
                 current = current->left;
             }
             target = current->left;
-            cout << "*shot left" << endl;
         }
 	}
     else if(diceVal == 2) {
         if(alive_playerCount == 2 || alive_playerCount == 3) {
-            cout << "**Special" << endl;
             shoot(currPlayer, 1, total_playerCount);
             return;
         }
@@ -375,7 +371,6 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
                     current = current->right;
                 }
                 target = current->right;
-                cout << "*shot right" << endl;
             }
             else {
                 while(player_dead_status[current->left->tag] != false) {
@@ -386,7 +381,6 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
                     current = current->left;
                 }
                 target = current->left;
-                cout << "*shot left" << endl;
             }
         }
     }
