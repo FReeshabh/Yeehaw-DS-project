@@ -127,11 +127,10 @@ int listPlayers(player *sheriff)
     return playerCount;
 }
 
-void resolveArrows(player *currPlayer)
-{
-	cout << "RESOLVING ARROWS\n";
+void resolveArrows(player *currPlayer) {
+	cout << "RESOLVING ARROWS" << endl;
     player *current = currPlayer;
-     do{
+    do{
          current->hp -= current->arrowsHeld;
          arrowsRemaining += current->arrowsHeld;
 		 if(current->hp <= 0)
@@ -395,12 +394,12 @@ player *generatePlayers(int playerCount)
     for(int i = 1; i < playerCount; i++) {
         new_player = createPlayer(i);
         assign_role(new_player, playerCount);
-        new_player->left = prev_player;
-        prev_player->right = new_player;
+        new_player->right = prev_player;
+        prev_player->left = new_player;
         prev_player = new_player;
     }
-    prev_player->right = first_player;
-    first_player->left = prev_player;
+    prev_player->left = first_player;
+    first_player->right = prev_player;
     return first_player;
 }
 
@@ -472,11 +471,11 @@ void display(player *first_player) {
     current = first_player;
     cout << "current player tag: " << current->tag << "\trole:" << current->role;
     cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
-    current = current->right;
+    current = current->left;
     while(current->tag != 0) {
         cout << "current player tag: " << current->tag << "\trole:" << current->role;
         cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
-        current = current->right;
+        current = current->left;
     }
 }
 
