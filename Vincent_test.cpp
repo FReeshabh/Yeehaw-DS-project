@@ -1,7 +1,7 @@
 //BIG PROJECT Part 1
 //Tyler Nee, Vincent Hew, Rishabh Tewari
 //Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
-//Vincent version 1.1.0
+//Vincent version 1.3.0
 
 #include <iostream>
 #include <conio.h>
@@ -29,15 +29,15 @@ typedef struct player{
 
 void resolveDice(player *currPlayer, int reroll); //master function
 //Supporting Functions
-void shoot(player *currPlayer, int diceVal); //vince dice val 1/2 
-void kaboom(player *currPlayer); //done dice val 4
+void kaboom(player *currPlayer); //No need to revise
 void resolveArrows(player *sheriff); //done dice val 5
 int listPlayers(player *sheriff); //done
 void sixFeetUnder(player *deceased); //done
 //Supporting Function
 int checkVictoryConditions(player *currPlayer); //done
-//**
+//** Vincent Revised
 void display(player *first_player);
+void shoot(player *currPlayer, int diceVal, int total_playerCount);
 player *createPlayer(int position);
 player *generatePlayers(int playerCount);
 void assign_role(player *current_player, int total_playerCount);
@@ -74,13 +74,24 @@ int main()
         clearDice(dice);
     }
     */
-   for(int i = 0; i < 10; i++) {
-        gatling(first_player);
+   for(int i = 0; i < 8; i++) {
+       cout << "lower hp squence" << endl;
+       gatling(first_player);
+       display(first_player);
+   }
+   cout << "shoot testing" << endl;
+   cout << "**Testing ONE bullet" << endl;
+   for(int i = 0; i < 5; i++) {
+        cout << "Shot fire: " << i+1 << " times" << endl;
+        shoot(first_player, 1, initial_playerCout);
         display(first_player);
-    }
-
-    giveBeer(first_player, initial_playerCout);
-    display(first_player);
+   }
+   cout << "**Testing TWO bullet" << endl;
+   for(int i = 0; i < 5; i++) {
+        cout << "Shot fire: " << i+1 << " times" << endl;
+        shoot(first_player, 2, initial_playerCout);
+        display(first_player);
+   }
 
 
 //player_dead_status[8]
@@ -173,11 +184,9 @@ void giveBeer(player *currPlayer, int total_playerCount) {
 	}
 }
 
-void kaboom(player *currPlayer)
-{
-    cout << "Dynamite Triggered: Rerolls Restricted\n";
-    for(int i = 0; i < MAX; i++)
-    {
+void kaboom(player *currPlayer) {
+    cout << "Dynamite Triggered: Rerolls Restricted" << endl;
+    for(int i = 0; i < MAX; i++) {
         dice[i]->locked = true;
     }
     currPlayer->hp--;
@@ -293,10 +302,10 @@ void resolveDice(player *currPlayer, int reroll) {
             switch (dice[i]->val) {
                 //case 0: giveBeer(currPlayer);
                 //break;
-                case 1: shoot(currPlayer, dice[i]->val);
+                /*case 1: shoot(currPlayer, dice[i]->val);
                 break;
                 case 2: shoot(currPlayer, dice[i]->val);
-                break;
+                break;*/
                 case 3: 
                     gats++;
                     if(gats == 3)
@@ -324,32 +333,70 @@ void resolveDice(player *currPlayer, int reroll) {
     }
 }
 
-void shoot(player *currPlayer, int diceVal) {
+void shoot(player *currPlayer, int diceVal, int total_playerCount) {
     int random_target = (rand() % (2 - 1 + 1)) + 1;
-    int currPlayer_count = listPlayers(sheriff);
+    int alive_playerCount = 0;
 	player *target;
-	player *currentPlayer = currPlayer;
-    if(diceVal == 1)
-    {
-        if(random_target == 1)
-            target = currentPlayer->right;
-        else
-			target = currentPlayer->left;
-	}
-    else if(diceVal == 2)
-    {
-        if(currPlayer_count == 2)
-			target = currentPlayer->right;
-        if(random_target == 1)
-			target = currentPlayer->right->right;
-        else
-			target = currentPlayer->left->left;
+	player *current = currPlayer;
+    for(int i = 0; i < total_playerCount; i++) {
+        if(player_dead_status[i] == false)
+            alive_playerCount++;
     }
-	if(target->hp <= 0)
-	{
-		sixFeetUnder(target);
-		checkVictoryConditions(currPlayer);
+    cout << "current alive count: " << alive_playerCount << endl;
+    if(diceVal == 1) {
+        if(random_target == 1) {
+            while(player_dead_status[current->right->tag] != false) {
+                current = current->right;
+            }
+            target = current->right;
+            cout << "*shot right" << endl;
+        }
+        else {
+            while(player_dead_status[current->left->tag] != false) {
+                current = current->left;
+            }
+            target = current->left;
+            cout << "*shot left" << endl;
+        }
 	}
+    else if(diceVal == 2) {
+        if(alive_playerCount == 2 || alive_playerCount == 3) {
+            cout << "**Special" << endl;
+            shoot(currPlayer, 1, total_playerCount);
+            return;
+        }
+        else {
+            if(random_target == 1) {
+                while(player_dead_status[current->right->tag] != false) {
+                    current = current->right;
+                }
+                current = current->right;
+                while(player_dead_status[current->right->tag] != false) {
+                    current = current->right;
+                }
+                target = current->right;
+                cout << "*shot right" << endl;
+            }
+            else {
+                while(player_dead_status[current->left->tag] != false) {
+                    current = current->left;
+                }
+                current = current->left;
+                while(player_dead_status[current->left->tag] != false) {
+                    current = current->left;
+                }
+                target = current->left;
+                cout << "*shot left" << endl;
+            }
+        }
+    }
+    if(target->tag == currPlayer->tag)
+        return;
+    (target->hp)--;
+	if(target->hp <= 0) {
+        player_dead_status[target->tag] = true;
+    }
+
 } 
 
 player *createPlayer(int position) {
