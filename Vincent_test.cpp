@@ -31,7 +31,6 @@ void resolveDice(player *currPlayer, int reroll); //master function
 //Supporting Functions
 void giveBeer(player *currPlayer); //done dice val 0
 void shoot(player *currPlayer, int diceVal); //vince dice val 1/2 
-void gatling(player *currPlayer); //vince dice val 3
 void kaboom(player *currPlayer); //done dice val 4
 void resolveArrows(player *sheriff); //done dice val 5
 int listPlayers(player *sheriff); //done
@@ -46,15 +45,17 @@ void assign_role(player *current_player, int total_playerCount);
 void rollDice(player *currPlayer);
 void initializeDice(die *dice[]);
 void clearDice(die *dice[]);
+void gatling(player *currPlayer);
 //**
 player *first_player = NULL;
 int deputy_count = 0;
 int outlaws_count = 0;
 int renegades_count = 0;
 bool role_available[4];
-//**
+bool player_dead_status[8];
+//**    
 player *sheriff;
-int arrowsRemaining = 10;
+int arrowsRemaining = 9;
 die *dice[MAX];
 int winCondition = 3;
 
@@ -66,12 +67,19 @@ int main()
     cout << "Player initial amount: " << initial_playerCout << endl;
     first_player = generatePlayers(initial_playerCout);
     display(first_player);
+    /*
     for(int i = 0; i < initial_playerCout; i++) {
         rollDice(first_player);
         first_player = first_player->right;
         clearDice(dice);
     }
-
+    */
+   for(int i = 0; i < 10; i++) {
+        cout << "gatling testing: " << i+1 << " times" << endl;
+        gatling(first_player);
+        display(first_player);
+   }
+//player_dead_status[8]
     /*
     while(winCondition == 3)
     {
@@ -212,20 +220,20 @@ int checkVictoryConditions(player *currPlayer)
     
 }
 
-void gatling(player *currPlayer)
-{
-	cout << "Gatling Effect Triggered \n";
-	arrowsRemaining += currPlayer->arrowsHeld;
-	currPlayer->arrowsHeld = 0;
+void gatling(player *currPlayer) {
     player *enemy;
+	cout << "Gatling Effect Triggered" << endl;
+	arrowsRemaining = currPlayer->arrowsHeld + arrowsRemaining;
+	currPlayer->arrowsHeld = 0;
     enemy = currPlayer->right;
-    while(enemy != currPlayer)
-    {
+    while(enemy != currPlayer) {
+        if(player_dead_status[enemy->tag] != false) {
+            enemy = enemy->right;
+            continue;
+        }
         (enemy->hp)--;
-        if(enemy->hp <= 0)
-        {
-            sixFeetUnder(enemy);
-            winCondition = checkVictoryConditions(currPlayer);
+        if(enemy->hp <= 0) {
+            player_dead_status[enemy->tag] = true;
         }
         enemy = enemy->right;
     }
@@ -315,9 +323,7 @@ void resolveDice(player *currPlayer, int reroll) {
     }
 }
 
-void shoot(player *currPlayer, int diceVal)
-{
-	cout << "Shots fired! \n";
+void shoot(player *currPlayer, int diceVal) {
     int random_target = (rand() % (2 - 1 + 1)) + 1;
     int currPlayer_count = listPlayers(sheriff);
 	player *target;
