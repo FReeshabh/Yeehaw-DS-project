@@ -1,7 +1,7 @@
 //BIG PROJECT Part 1
 //Tyler Nee, Vincent Hew, Rishabh Tewari
 //Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
-//Vincent version 1.3.0
+//Vincent version 1.3.3
 
 #include <iostream>
 #include <conio.h>
@@ -133,11 +133,10 @@ void resolveArrows(player *currPlayer) {
     do{
          current->hp -= current->arrowsHeld;
          arrowsRemaining += current->arrowsHeld;
-		 if(current->hp <= 0)
-		 {
+		 if(current->hp <= 0) {
 			 sixFeetUnder(current);
 			 cout << "SixFeetUnder ran successfully "<<endl;
-		 }
+		}
          current->arrowsHeld = 0;
          current = current->right;
 		 cout << "CurrentPlayer is " << current->tag << endl;
