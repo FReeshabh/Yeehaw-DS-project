@@ -220,9 +220,27 @@ void gatling(player *currPlayer) {
 
 void sixFeetUnder(player *deceased)
 {
-    deceased->left->right = deceased->right;
-    deceased->right->left = deceased->left;
+	if(deceased->hp < 0)
+	{
+		deceased->hp = 0;
+	}
     cout << "Player " << deceased->tag << " has died."<<endl;
+	cout << "They were a";
+	switch(deceased->role)
+	{
+		case 0: cout << " sheriff.";
+		break;
+		case 1: cout << " deputy.";
+		break;
+		case 2: cout << "n outlaw.";
+		break;
+		case 3: cout << " renegade.";
+		break;
+	}
+	cout <<endl << "They dropped " << deceased->arrowsHeld << " arrows."<<endl;
+	arrowsRemaining += deceased->arrowsHeld;
+	deceased->arrowsHeld = 0;
+	player_dead_status[deceased->tag] = true;
 }
 
 void rollDice(player *currPlayer) {
