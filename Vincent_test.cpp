@@ -116,20 +116,19 @@ int listPlayers(player *sheriff)
     //playerCount returns the amount of live players still in the game.
     return playerCount;
 }
-
 void resolveArrows(player *currPlayer) {
 	cout << "RESOLVING ARROWS" << endl;
     player *current = currPlayer;
     do{
          current->hp -= current->arrowsHeld;
+		 cout << "Player " << current->tag << " sustained " << current->arrowsHeld << " damage " <<endl;
          arrowsRemaining += current->arrowsHeld;
-		 if(current->hp <= 0) {
+		 if(current->hp <= 0)
+		 {
 			 sixFeetUnder(current);
-			 cout << "SixFeetUnder ran successfully "<<endl;
-		}
+		 }
          current->arrowsHeld = 0;
          current = current->right;
-		 cout << "CurrentPlayer is " << current->tag << endl;
     } while(current != currPlayer);
     cout << "Arrows Resolved...\n";
 }
