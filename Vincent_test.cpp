@@ -4,11 +4,15 @@
 //Vincent version 1.3.0
 
 #include <iostream>
-#include <conio.h>
-#include <malloc.h>
 #include <time.h>
-#include <string.h>
+#include <cstring>
 #define MAX 5
+
+#define SHERIFF  0
+#define DEPUTY   1
+#define OUTLAW   2
+#define RENEGADE 3
+
 using namespace std;
 
 typedef struct die{
@@ -99,15 +103,15 @@ int listPlayers(player *sheriff)
     player *temp = sheriff;
     do{
         cout << "["<<playerCount<<"] HP: "<<temp->hp<<" Arrows Held: "<<temp->arrowsHeld;
-		if(temp->role == 0)
+		if(temp->role == SHERIFF)
 		{
 			cout << " SHERIFF ";
 		}
-		if(temp->role == 2)
+		if(temp->role == OUTLAW)
 		{
 			cout << " OUTLAW ";
 		}
-		if(temp->role == 3)
+		if(temp->role == RENEGADE)
 		{
 			cout << " RENEGADE ";
 		}
@@ -178,7 +182,7 @@ int checkVictoryConditions(player *currPlayer)
     player *current = currPlayer;
 	do{
 		//cout << "Current Role is " << current->role <<endl;
-        if(current->role == 2 || current->role == 3)
+        if(current->role == OUTLAW || current->role == RENEGADE)
         {
             //cout << "Outlaw Detected\n";
             outlaws++;
@@ -192,7 +196,7 @@ int checkVictoryConditions(player *currPlayer)
         return 0;
     }
 
-    if(listPlayers(currPlayer) == 1 && currPlayer->role == 3)
+    if(listPlayers(currPlayer) == DEPUTY && currPlayer->role == RENEGADE)
     {
         cout << "The Renegade is the last man standing. \nTHE RENEGADE WINS \n";
         return 1;
