@@ -13,6 +13,17 @@
 #define OUTLAW   2
 #define RENEGADE 3
 
+
+//BIG PROJECT Part 1
+//Tyler Nee, Vincent Hew, Rishabh Tewari
+//Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
+//Vincent version 1.3.0
+#include <iostream>
+#include <conio.h>
+#include <malloc.h>
+#include <time.h>
+#include <string.h>
+#define MAX 5
 using namespace std;
 
 typedef struct die{
@@ -51,6 +62,7 @@ void initializeDice(die *dice[]);
 void clearDice(die *dice[]);
 void gatling(player *currPlayer);
 //**
+
 player *first_player = NULL;
 int deputy_count = 0;
 int outlaws_count = 0;
@@ -67,17 +79,19 @@ int main()
 {
     srand(time(0));
 	initializeDice(dice);
-    int initial_playerCout = (rand() % (8 - 4 + 1)) + 4;
-    cout << "Player initial amount: " << initial_playerCout << endl;
-    first_player = generatePlayers(initial_playerCout);
+    int initial_playerCount = (rand() % (8 - 4 + 1)) + 4;
+    cout << "Player initial amount: " << initial_playerCount << endl;
+    first_player = generatePlayers(initial_playerCount);
     display(first_player);
-    /*
-    for(int i = 0; i < initial_playerCout; i++) {
-        rollDice(first_player);
-        first_player = first_player->right;
-        clearDice(dice);
+    
+    for(int i = 0; i < 10; i++) {
+		sheriff->arrowsHeld++;
+		arrowsRemaining--;
+		if(arrowsRemaining == 0)
+			resolveArrows(sheriff);
+        display(first_player);
+		
     }
-    */
 
 
     /*
@@ -116,21 +130,22 @@ int listPlayers(player *sheriff)
     //playerCount returns the amount of live players still in the game.
     return playerCount;
 }
+
 void resolveArrows(player *currPlayer) {
 	cout << "RESOLVING ARROWS" << endl;
-    player *current = currPlayer;
-    do{
-         current->hp -= current->arrowsHeld;
-		 cout << "Player " << current->tag << " sustained " << current->arrowsHeld << " damage " <<endl;
-         arrowsRemaining += current->arrowsHeld;
+	player *current = currPlayer;
+	do{
+		current->hp -= current->arrowsHeld;
+		cout << "Player " << current->tag << " sustained " << current->arrowsHeld << " damage " <<endl;
+         	arrowsRemaining += current->arrowsHeld;
 		 if(current->hp <= 0)
 		 {
 			 sixFeetUnder(current);
 		 }
          current->arrowsHeld = 0;
-         current = current->right;
-    } while(current != currPlayer);
-    cout << "Arrows Resolved...\n";
+         current = current->left;
+	} while(current != currPlayer);
+	cout << "Arrows Resolved...\n";
 }
 
 void giveBeer(player *currPlayer, int total_playerCount) {
@@ -162,11 +177,12 @@ void kaboom(player *currPlayer) {
 
 int checkVictoryConditions(player *currPlayer)
 {
+	//Checks from the player who is taking their turn.
     int outlaws = 0;
     player *current = currPlayer;
 	do{
 		//cout << "Current Role is " << current->role <<endl;
-        if(current->role == OUTLAW || current->role == RENEGADE)
+        if(current->role == 2 || current->role == 3)
         {
             //cout << "Outlaw Detected\n";
             outlaws++;
@@ -180,11 +196,12 @@ int checkVictoryConditions(player *currPlayer)
         return 0;
     }
 
-    if(listPlayers(currPlayer) == DEPUTY && currPlayer->role == RENEGADE)
+    if(listPlayers(currPlayer) == 1 && currPlayer->role == 3)
     {
         cout << "The Renegade is the last man standing. \nTHE RENEGADE WINS \n";
         return 1;
     }
+	
     else if(sheriff->hp == 0)
     {
         cout << "The Outlaws have killed the Sheriff. \nTHE OUTLAWS WIN \n";
@@ -211,11 +228,12 @@ void gatling(player *currPlayer) {
         }
         (enemy->hp)--;
         if(enemy->hp <= 0) {
-            player_dead_status[enemy->tag] = true;
+            sixFeetUnder(enemy);
         }
         enemy = enemy->right;
     }
 }
+
 
 void sixFeetUnder(player *deceased)
 {
@@ -223,7 +241,7 @@ void sixFeetUnder(player *deceased)
 	{
 		deceased->hp = 0;
 	}
-    cout << "Player " << deceased->tag << " has died."<<endl;
+	cout << "Player " << deceased->tag << " has died."<<endl;
 	cout << "They were a";
 	switch(deceased->role)
 	{
@@ -426,6 +444,7 @@ void assign_role(player *current_player, int total_playerCount) {
         current_player->role = role_position;
         current_player->maxhp = current_player->maxhp+2;
         current_player->hp = current_player->hp+2;
+		sheriff = current_player;
         role_available[0] = true;
     }
     else if(role_position == 1) {
