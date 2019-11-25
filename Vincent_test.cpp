@@ -4,26 +4,15 @@
 //Vincent version 1.3.3
 
 #include <iostream>
-#include <time.h>
-#include <cstring>
-#define MAX 5
-
-#define SHERIFF  0
-#define DEPUTY   1
-#define OUTLAW   2
-#define RENEGADE 3
-
-
-//BIG PROJECT Part 1
-//Tyler Nee, Vincent Hew, Rishabh Tewari
-//Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
-//Vincent version 1.3.0
-#include <iostream>
 #include <conio.h>
 #include <malloc.h>
 #include <time.h>
 #include <string.h>
 #define MAX 5
+#define SHERIFF  0
+#define DEPUTY   1
+#define OUTLAW   2
+#define RENEGADE 3
 using namespace std;
 
 typedef struct die{
