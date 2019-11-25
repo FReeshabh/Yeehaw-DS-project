@@ -102,23 +102,9 @@ int listPlayers(player *sheriff)
     int playerCount = 0;
     player *temp = sheriff;
     do{
-        cout << "["<<playerCount<<"] HP: "<<temp->hp<<" Arrows Held: "<<temp->arrowsHeld;
-		if(temp->role == SHERIFF)
-		{
-			cout << " SHERIFF ";
-		}
-		if(temp->role == OUTLAW)
-		{
-			cout << " OUTLAW ";
-		}
-		if(temp->role == RENEGADE)
-		{
-			cout << " RENEGADE ";
-		}
-		
         if(temp->hp <= 0)
         {
-            cout << " DEAD ";
+            //cout << " DEAD ";
         }
         else
         {
@@ -472,11 +458,11 @@ void assign_role(player *current_player, int total_playerCount) {
 void display(player *first_player) {
     player *current;
     current = first_player;
-    cout << "current player tag: " << current->tag << "\trole:" << current->role;
+    cout << "Player " << current->tag << " Role: " << current->role;
     cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
     current = current->left;
     while(current->tag != 0) {
-        cout << "current player tag: " << current->tag << "\trole:" << current->role;
+        cout << "Player " << current->tag << " Role: " << current->role;
         cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
         current = current->left;
     }
