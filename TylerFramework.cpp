@@ -39,7 +39,7 @@ void clearDice(die *dice[]);
 
 void sixFeetUnder(player *deceased); //done
 //Supporting Function
-int checkVictoryConditions(player *currPlayer); //done
+int checkVictoryConditions(player *sheriff); //done
 
 player *sheriff;
 int arrowsRemaining = 10;
@@ -64,7 +64,7 @@ int main()
 		}
         resolveDice(currentPlayer, 0);
 		clearDice(dice);
-		winCondition = checkVictoryConditions(currentPlayer);
+		winCondition = checkVictoryConditions(sheriff);
         currentPlayer = currentPlayer->right;
     }
 }
@@ -103,10 +103,10 @@ int listPlayers(player *sheriff)
     return playerCount;
 }
 
-void resolveArrows(player *currPlayer)
+void resolveArrows(player *sheriff)
 {
 	cout << "RESOLVING ARROWS\n";
-    player *current = currPlayer;
+    player *current = sheriff;
      do{
          current->hp -= current->arrowsHeld;
          arrowsRemaining += current->arrowsHeld;
@@ -154,26 +154,25 @@ void kaboom(player *currPlayer)
     currPlayer->hp--;
 }
 
-int checkVictoryConditions(player *currPlayer)
+int checkVictoryConditions(player *sheriff)
 {
     int outlaws = 0;
-    player *current = currPlayer;
+    player *current = sheriff;
 	do{
 		//cout << "Current Role is " << current->role <<endl;
         if(current->role == 2 || current->role == 3)
         {
-            //cout << "Outlaw Detected\n";
-            outlaws++;
+			if(currPlayer->hp > 0)
+				outlaws++;
         }
         current = current->right;
-    }while(current != currPlayer);
+    }while(current != sheriff);
 
     if(outlaws == 0)
     {
         cout << "The Sheriff has driven crime from the town.\nTHE LAW WINS \n";
         return 0;
     }
-
     if(listPlayers(currPlayer) == 1 && currPlayer->role == 3)
     {
         cout << "The Renegade is the last man standing. \nTHE RENEGADE WINS \n";
@@ -205,7 +204,7 @@ void gatling(player *currPlayer)
         if(enemy->hp <= 0)
         {
             sixFeetUnder(enemy);
-            winCondition = checkVictoryConditions(currPlayer);
+            winCondition = checkVictoryConditions(sheriff);
         }
         enemy = enemy->right;
     }
@@ -213,9 +212,16 @@ void gatling(player *currPlayer)
 
 void sixFeetUnder(player *deceased)
 {
-    deceased->left->right = deceased->right;
-    deceased->right->left = deceased->left;
     cout << "Player " << deceased->tag << " has died."<<endl;
+	cout << "They were a ";
+	switch(deceased->role)
+	{
+		case 1: "deputy.";
+		break;
+		case 2: "n outlaw.";
+		break;
+		case 3: "renegade."
+	}
 }
 
 void rollDice(player *currPlayer)
@@ -236,7 +242,7 @@ void rollDice(player *currPlayer)
 
 void resolveDice(player *currPlayer, int reroll)
 {
-	cout << "Player of role " << currPlayer->role << " is resolving their turn.\n";
+	cout << "Player " << currPlayer->tag << " is resolving their turn.\n";
 	rollDice(currPlayer);
     int gats = 0;
     //Holds Amount of Gatling Die
@@ -315,28 +321,48 @@ void shoot(player *currPlayer, int diceVal)
 	cout << "Shots fired! \n";
     int random_target = (rand() % (2 - 1 + 1)) + 1;
     int currPlayer_count = listPlayers(sheriff);
-	player *target;
+	int targetDistance;
+	player *target = currPlayer;
 	player *currentPlayer = currPlayer;
     if(diceVal == 1)
     {
+		targetDistance = 1;
         if(random_target == 1)
-            target = currentPlayer->right;
+		{
+			while(targetDistance >= 0)
+			{
+				target = target->right;
+			}
+		}
         else
-			target = currentPlayer->left;
+			while(targetDistance >= 0)
+			{
+				target = target->left;
+			}
 	}
     else if(diceVal == 2)
     {
+		targetDistance = 2;
         if(currPlayer_count == 2)
-			target = currentPlayer->right;
+			while(targetDistance >= 0)
+			{
+				target = target->right;
+			}
         if(random_target == 1)
-			target = currentPlayer->right->right;
+			while(targetDistance >= 0)
+			{
+				target = target->right;
+			}
         else
-			target = currentPlayer->left->left;
+			while(targetDistance >= 0)
+			{
+				target = target->left;
+			}
     }
 	if(target->hp <= 0)
 	{
 		sixFeetUnder(target);
-		checkVictoryConditions(currPlayer);
+		checkVictoryConditions(sheriff);
 	}
 } 
 
