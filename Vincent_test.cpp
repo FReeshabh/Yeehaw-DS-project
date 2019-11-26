@@ -73,6 +73,7 @@ int main()
     first_player = generatePlayers(initial_playerCount);
     display(first_player);
     
+/*
     for(int i = 0; i < 10; i++) {
 		sheriff->arrowsHeld++;
 		arrowsRemaining--;
@@ -81,7 +82,7 @@ int main()
         display(first_player);
 		
     }
-
+*/
 
     /*
     while(winCondition == 3)
@@ -123,16 +124,15 @@ int listPlayers(player *sheriff)
 void resolveArrows(player *currPlayer) {
 	cout << "RESOLVING ARROWS" << endl;
 	player *current = currPlayer;
-	do{
+	do {
 		current->hp -= current->arrowsHeld;
 		cout << "Player " << current->tag << " sustained " << current->arrowsHeld << " damage " <<endl;
          	arrowsRemaining += current->arrowsHeld;
-		 if(current->hp <= 0)
-		 {
+		 if(current->hp <= 0) {
 			 sixFeetUnder(current);
-		 }
-         current->arrowsHeld = 0;
-         current = current->left;
+		}
+        current->arrowsHeld = 0;
+        current = current->left;
 	} while(current != currPlayer);
 	cout << "Arrows Resolved...\n";
 }
@@ -162,6 +162,9 @@ void kaboom(player *currPlayer) {
         dice[i]->locked = true;
     }
     currPlayer->hp--;
+    if(currPlayer->hp <= 0) {
+        sixFeetUnder(currPlayer);
+    }
 }
 
 int checkVictoryConditions(player *currPlayer)
@@ -224,16 +227,13 @@ void gatling(player *currPlayer) {
 }
 
 
-void sixFeetUnder(player *deceased)
-{
-	if(deceased->hp < 0)
-	{
+void sixFeetUnder(player *deceased) {
+	if(deceased->hp < 0) {
 		deceased->hp = 0;
 	}
 	cout << "Player " << deceased->tag << " has died."<<endl;
 	cout << "They were a";
-	switch(deceased->role)
-	{
+	switch(deceased->role) {
 		case 0: cout << " sheriff.";
 		break;
 		case 1: cout << " deputy.";
@@ -381,7 +381,7 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
         return;
     (target->hp)--;
 	if(target->hp <= 0) {
-        player_dead_status[target->tag] = true;
+        sixFeetUnder(target);
     }
 
 } 
