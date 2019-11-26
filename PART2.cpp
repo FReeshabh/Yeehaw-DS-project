@@ -224,17 +224,17 @@ void gatling(player *currPlayer) {
 
 
 void sixFeetUnder(player *deceased) {
-	if(deceased->hp < 0) {
+	if(deceased->hp <= 0) {
 		deceased->hp = 0;
 	}
 	cout << "Player " << deceased->tag << " has died." << endl;
-	cout << "They were a";
+	cout << "Player " << deceased->tag << " was a ";
 	switch(deceased->role) {
 		case 0: cout << " sheriff.";
 		break;
 		case 1: cout << " deputy.";
 		break;
-		case 2: cout << "n outlaw.";
+		case 2: cout << "an outlaw.";
 		break;
 		case 3: cout << " renegade.";
 		break;
