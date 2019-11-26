@@ -1,7 +1,7 @@
 //BIG PROJECT Part 1
 //Tyler Nee, Vincent Hew, Rishabh Tewari
 //Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
-//Vincent version 1.5.0
+//Vincent version 1.5.5
 
 #include <iostream>
 #include <conio.h>
@@ -338,12 +338,14 @@ void resolveDice(player *currPlayer, int reroll) {
             }
         }
     }
+    /*
     if(reroll <= 2) {
         reroll_option = (rand() % (2 - 1 + 1)) + 1;
         if() {
 
         }
     }
+    */
 }
 
 void shoot(player *currPlayer, int diceVal, int total_playerCount) {
