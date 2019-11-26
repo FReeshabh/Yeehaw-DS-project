@@ -14,6 +14,12 @@
 #define OUTLAW   2
 #define RENEGADE 3
 #define GAME_CONTINUE 4
+#define BEER 0
+#define SHOOT_1 1
+#define SHOOT_2 2
+#define GATLING 3
+#define DYNAMITE 4
+#define ARROW 5
 using namespace std;
 
 typedef struct die{
@@ -39,8 +45,8 @@ void resolveArrows(player *sheriff); //done dice val 5
 int listPlayers(player *sheriff); //done
 void sixFeetUnder(player *deceased); //done
 //Supporting Function
-int checkVictoryConditions(player *currPlayer); //done
-//** Vincent Revised
+int checkVictoryConditions(player *currPlayer);
+//**
 void display(player *first_player);
 void shoot(player *currPlayer, int diceVal, int total_playerCount);
 player *createPlayer(int position);
@@ -52,7 +58,6 @@ void initializeDice(die *dice[]);
 void clearDice(die *dice[]);
 void gatling(player *currPlayer);
 //**
-
 player *first_player = NULL;
 int deputy_count = 0;
 int outlaws_count = 0;
@@ -105,6 +110,7 @@ int main() {
         currentPlayer = currentPlayer->right;
     }
     */
+   
    return 0;
 }
 
@@ -277,65 +283,66 @@ void rollDice(player *currPlayer) {
 }
 
 void resolveDice(player *currPlayer, int reroll) {
-	rollDice(currPlayer);
     int gats = 0;       //Holds Amount of Gatling Die
     int dyna = 0;       //Holds Amount of Dynamite Die
+    int bullet_1 = 0;
+    int bullet_2 = 0;
+    int beer = 0;
+    int reroll_option;
+    rollDice(currPlayer);
     for(int i = 0; i < MAX; i++) {
-        if(dice[i]->val == 4) {
-            dice[i]->locked = true;
-            dyna++;
-        }
-        if(dice[i]->val == 5 && dice[i]->locked == false) {
-			cout << "Player took an arrow\n";
-            currPlayer->arrowsHeld++;
-            arrowsRemaining--;
-			if(arrowsRemaining == 0) {
-				resolveArrows(currPlayer);
-			}
-        }
-    }
-	if(currPlayer->hp <= 0) {
-		cout << "Player died during own turn.\n";
-		sixFeetUnder(currPlayer);
-		currPlayer = currPlayer->right;
-	}
-    if(reroll == 2 || dyna == 3) {
-		if(dyna == 3) {
-			kaboom(currPlayer);
-		}
-        cout << "Max Rerolls Reached \n";
-        for(int i = 0; i < MAX; i++) {
-            switch (dice[i]->val) {
-                //case 0: giveBeer(currPlayer);
-                //break;
-                /*case 1: shoot(currPlayer, dice[i]->val);
-                break;
-                case 2: shoot(currPlayer, dice[i]->val);
-                break;*/
-                case 3: 
-                    gats++;
-                    if(gats == 3)
-                    {
-                        gatling(currPlayer);
-                    }
-                break;
-            }
-        }
-    }
-    else
-    {
-        cout << "Selecting dice to keep locked in..."<<endl;
-        for(int i = 0; i < MAX; i++)
-        {
-            if(dice[i]->locked == false)
+        switch (dice[i]->val) {
+            case DYNAMITE:
             {
-                if((rand()% 2) == 0)
-                {
-                    dice[i]->locked = true;
+                dice[i]->locked = true;
+                dyna++;
+                if(dyna == 3) {
+                    kaboom(currPlayer);
+                    checkVictoryConditions(currPlayer);
                 }
+                break;
+            }
+            case ARROW:
+            {
+                currPlayer->arrowsHeld++;
+                arrowsRemaining--;
+                if(arrowsRemaining == 0) {
+				    resolveArrows(currPlayer);
+                    checkVictoryConditions(currPlayer);
+			    }
+                break;
+            }
+            case GATLING:
+            {
+                gats++;
+                if(gats == 3) {
+                    gatling(currPlayer);
+                    checkVictoryConditions(currPlayer);
+                }
+                break;
+            }
+            case BEER:
+            {
+                beer++;
+                break;
+            }
+            case SHOOT_1:
+            {
+                bullet_1++;
+                break;
+            }
+            case SHOOT_2:
+            {
+                bullet_2++;
+                break;
             }
         }
-        resolveDice(currPlayer,reroll+1);
+    }
+    if(reroll <= 2) {
+        reroll_option = (rand() % (2 - 1 + 1)) + 1;
+        if() {
+
+        }
     }
 }
 
