@@ -510,3 +510,34 @@ void clearDice(die *dice[]) {
 		dice[i]->val = 0;
 	}
 }
+
+int getBehaviorModifier(player *currPlayer, int dieValue)
+{
+	switch(currPlayer->role)
+	{
+		case SHERIFF:
+		cout << "Sheriff's Resolve"<<endl;
+		//The sheriff will prioritize healing himself. He won't attack targets that have healed him in the last two turns.
+		//Will always trigger gatling when available.
+		switch(dieValue)
+		{
+			case BEER:
+			
+		}
+		break;
+		case DEPUTY:
+		cout << "Deputy's Reasoning"<<endl;
+		//Deputies will prioritize healing the sheriff, and themselves if they fall low.
+		//If they have to shoot, the sheriff will never be targeted.
+		break;
+		case OUTLAW:
+		cout << "Outlaw's Revenge"<<endl;
+		//Outlaws will target the sheriff whenever possible. They will heal themselves when low.
+		break;
+		case RENEGADE:
+		cout << "Renegade's Rage"<<endl;
+		//Renegades prioritize healing themselves. They will start healing the sheriff if he falls below half health.
+		//They will always trigger gatling when available.
+		break;
+	}
+}
