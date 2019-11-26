@@ -4,9 +4,8 @@
 //Vincent version 1.5.5
 
 #include <iostream>
-#include <malloc.h>
 #include <time.h>
-#include <string.h>
+#include <cstring>
 #define MAX 5
 #define SHERIFF  0
 #define DEPUTY   1
