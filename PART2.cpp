@@ -1,7 +1,6 @@
-//BIG PROJECT Part 1
+//BIG PROJECT Part 2
 //Tyler Nee, Vincent Hew, Rishabh Tewari
 //Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
-//Vincent version 1.5.5
 
 #include <iostream>
 #include <time.h>
@@ -40,7 +39,6 @@ void resolveDice(player *currPlayer, int reroll); //master function
 //Supporting Functions
 void kaboom(player *currPlayer);
 void resolveArrows(player *sheriff); //done dice val 5
-int listPlayers(player *sheriff); //done
 void sixFeetUnder(player *deceased); //done
 //Supporting Function
 int checkVictoryConditions(player *currPlayer);
@@ -111,26 +109,6 @@ int main() {
     */
    
    return 0;
-}
-
-int listPlayers(player *sheriff)
-{
-    int playerCount = 0;
-    player *temp = sheriff;
-    do{
-        if(temp->hp <= 0)
-        {
-            //cout << " DEAD ";
-        }
-        else
-        {
-            playerCount++;
-        }
-		cout <<endl;
-        temp = temp->right;
-    } while(temp != sheriff);
-    //playerCount returns the amount of live players still in the game.
-    return playerCount;
 }
 
 void resolveArrows(player *currPlayer) {
