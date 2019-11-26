@@ -1,7 +1,7 @@
 //BIG PROJECT Part 1
 //Tyler Nee, Vincent Hew, Rishabh Tewari
 //Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
-//Vincent version 1.4.0
+//Vincent version 1.5.0
 
 #include <iostream>
 #include <conio.h>
@@ -175,7 +175,6 @@ void kaboom(player *currPlayer) {
 }
 
 int checkVictoryConditions(player *currPlayer) {
-	//Checks from the player who is taking their turn.
     int criminals_total = 0;
     int criminals_outlaw = 0;
     int criminals_renegade = 0;
@@ -195,30 +194,28 @@ int checkVictoryConditions(player *currPlayer) {
         current = current->left;
     }while(current != currPlayer);
     criminals_total = criminals_outlaw+criminals_renegade;
-    cout << "**alive count: " << alive_playerCount << endl;
     if(alive_playerCount == 0) {
-        cout << "ALL DEAD testing" << endl;
-        cout << "The outlaws win." << endl;
+        cout << "THE OUTLAW WINS" << endl;
         return OUTLAW;
     }
     else if(criminals_total == 0) {
-        cout << "The Sheriff has driven crime from the town.\nTHE LAW WINS \n";
+        cout << "THE LAW WINS" << endl;
         return SHERIFF;
     }
     else if(alive_playerCount == 1 && criminals_renegade == 1) {
-        cout << "The Renegade is the last man standing. \nTHE RENEGADE WINS \n";
+        cout << "THE RENEGADE WINS" << endl;
         return RENEGADE;
     }
     else if(sheriff->hp == 0) {
-        cout << "The Outlaws have killed the Sheriff. \nTHE OUTLAWS WIN \n";
+        cout << "THE OUTLAWS WINS" << endl;
         return OUTLAW;
     }
     else if((criminals_renegade+alive_deputy) == alive_playerCount) {
-        cout << "The outlaws win" << endl;
+        cout << "THE OUTLAW WINS" << endl;
         return OUTLAW;
     }
     else {
-        cout << "Game continue" << endl;
+        cout << "GAME CONTINUE" << endl;
         return GAME_CONTINUE;
     }
 }
@@ -501,6 +498,7 @@ void assign_role(player *current_player, int total_playerCount) {
 void display(player *first_player) {
     player *current;
     current = first_player;
+    cout << "***Current Player List Status***" << endl;
     cout << "Player " << current->tag << " Role: " << current->role;
     cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
     current = current->left;
