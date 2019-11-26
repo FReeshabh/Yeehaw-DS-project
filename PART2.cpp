@@ -55,7 +55,7 @@ void rollDice(player *currPlayer);
 void initializeDice(die *dice[]);
 void clearDice(die *dice[]);
 void gatling(player *currPlayer);
-int getBehaviorModifier(player *currPlayer, int diceValue);
+int getBehaviorModifier(player *currPlayer, int diceValue); //When you call random, the func will instead return a value that is checked against random, depending on the current player's role and the value of the dice
 //**
 player *first_player = NULL;
 int deputy_count = 0;
