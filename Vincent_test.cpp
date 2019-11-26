@@ -1,7 +1,7 @@
 //BIG PROJECT Part 1
 //Tyler Nee, Vincent Hew, Rishabh Tewari
 //Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
-//Vincent version 1.5.5
+//Vincent version 1.5.6
 
 #include <iostream>
 #include <malloc.h>
@@ -37,12 +37,11 @@ typedef struct player{
     player *right;
 }player;
 
-void resolveDice(player *currPlayer, int reroll); //master function
+void resolveDice(player *currPlayer, int reroll, int total_playerCount); //master function
 //Supporting Functions
 void kaboom(player *currPlayer);
-void resolveArrows(player *sheriff); //done dice val 5
-int listPlayers(player *sheriff); //done
-void sixFeetUnder(player *deceased); //done
+void resolveArrows(player *sheriff); 
+void sixFeetUnder(player *deceased); 
 //Supporting Function
 int checkVictoryConditions(player *currPlayer);
 //**
@@ -76,62 +75,12 @@ int main() {
     cout << "Player initial amount: " << initial_playerCount << endl;
     first_player = generatePlayers(initial_playerCount);
     display(first_player);
-    
-/*
-    for(int i = 0; i < 10; i++) {
-		sheriff->arrowsHeld++;
-		arrowsRemaining--;
-		if(arrowsRemaining == 0)
-			resolveArrows(sheriff);
-        display(first_player);
-		
-    }
-*/  
-    for(int i = 0; i < 14; i++) {
-		gatling(first_player);
-        display(first_player);
-		if(checkVictoryConditions(first_player) != GAME_CONTINUE) {
-            return 0;
-        }
-    }
+    cout << endl << "Game Start" << endl;
 
-    /*
-    while(winCondition == 3)
-    {
-		while(currentPlayer->hp == 0)
-		{
-			currentPlayer = currentPlayer->right;
-			sixFeetUnder(currentPlayer->left);
-		}
-        resolveDice(currentPlayer, 0);
-		clearDice(dice);
-		winCondition = checkVictoryConditions(currentPlayer);
-        currentPlayer = currentPlayer->right;
-    }
-    */
-   
+
    return 0;
 }
 
-int listPlayers(player *sheriff)
-{
-    int playerCount = 0;
-    player *temp = sheriff;
-    do{
-        if(temp->hp <= 0)
-        {
-            //cout << " DEAD ";
-        }
-        else
-        {
-            playerCount++;
-        }
-		cout <<endl;
-        temp = temp->right;
-    } while(temp != sheriff);
-    //playerCount returns the amount of live players still in the game.
-    return playerCount;
-}
 
 void resolveArrows(player *currPlayer) {
 	cout << "RESOLVING ARROWS" << endl;
@@ -281,7 +230,7 @@ void rollDice(player *currPlayer) {
     cout << "current player tag: " << currPlayer->tag << " finished." << endl;
 }
 
-void resolveDice(player *currPlayer, int reroll) {
+void resolveDice(player *currPlayer, int reroll, int total_playerCount) {
     int gats = 0;       //Holds Amount of Gatling Die
     int dyna = 0;       //Holds Amount of Dynamite Die
     int bullet_1 = 0;
@@ -337,14 +286,29 @@ void resolveDice(player *currPlayer, int reroll) {
             }
         }
     }
-    /*
     if(reroll <= 2) {
-        reroll_option = (rand() % (2 - 1 + 1)) + 1;
-        if() {
-
+        reroll++;
+        //option 1: no reroll   option 2: reroll some   option 3: reroll all
+        reroll_option = (rand() % (3 - 1 + 1)) + 1;
+        if(reroll_option == 1) {
+            cout << "option 1" << endl;
+        }
+        else if(reroll_option == 2) {
+            cout << "option 2" << endl;
+        }
+        else if(reroll_option == 3) {
+            cout << "option 3" << endl;
         }
     }
-    */
+    for(int i = 0; i < bullet_1; i++) {
+        shoot(currPlayer, 1, total_playerCount);
+    }
+    for(int i = 0; i < bullet_2; i++) {
+        shoot(currPlayer, 2, total_playerCount);
+    }
+    for(int i = 0; i < beer; i++) {
+        giveBeer(currPlayer, total_playerCount);
+    }
 }
 
 void shoot(player *currPlayer, int diceVal, int total_playerCount) {
