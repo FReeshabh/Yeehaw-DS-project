@@ -4,7 +4,6 @@
 //Vincent version 1.5.5
 
 #include <iostream>
-#include <conio.h>
 #include <malloc.h>
 #include <time.h>
 #include <string.h>
