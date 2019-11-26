@@ -13,6 +13,7 @@
 #define DEPUTY   1
 #define OUTLAW   2
 #define RENEGADE 3
+#define GAME_CONTINUE 4
 using namespace std;
 
 typedef struct die{
@@ -24,7 +25,7 @@ typedef struct player{
     int hp;
     int maxhp;
     int arrowsHeld;
-    int role; //0 Sheriff, 1 Deputy, 2 Outlaw, 3 Renegade
+    int role;
     int ability;
 	int tag;
     player *left;
@@ -33,7 +34,7 @@ typedef struct player{
 
 void resolveDice(player *currPlayer, int reroll); //master function
 //Supporting Functions
-void kaboom(player *currPlayer); //No need to revise
+void kaboom(player *currPlayer);
 void resolveArrows(player *sheriff); //done dice val 5
 int listPlayers(player *sheriff); //done
 void sixFeetUnder(player *deceased); //done
@@ -64,8 +65,7 @@ int arrowsRemaining = 9;
 die *dice[MAX];
 int winCondition = 3;
 
-int main()
-{
+int main() {
     srand(time(0));
 	initializeDice(dice);
     int initial_playerCount = (rand() % (8 - 4 + 1)) + 4;
@@ -82,7 +82,14 @@ int main()
         display(first_player);
 		
     }
-*/
+*/  
+    for(int i = 0; i < 14; i++) {
+		gatling(first_player);
+        display(first_player);
+		if(checkVictoryConditions(first_player) != GAME_CONTINUE) {
+            return 0;
+        }
+    }
 
     /*
     while(winCondition == 3)
@@ -167,44 +174,53 @@ void kaboom(player *currPlayer) {
     }
 }
 
-int checkVictoryConditions(player *currPlayer)
-{
+int checkVictoryConditions(player *currPlayer) {
 	//Checks from the player who is taking their turn.
-    int outlaws = 0;
+    int criminals_total = 0;
+    int criminals_outlaw = 0;
+    int criminals_renegade = 0;
+    int alive_deputy = 0;
+    int alive_playerCount = 0;
     player *current = currPlayer;
 	do{
-		//cout << "Current Role is " << current->role <<endl;
-        if(current->role == 2 || current->role == 3)
-        {
-            //cout << "Outlaw Detected\n";
-            outlaws++;
+        if(player_dead_status[current->tag] == false) {
+            alive_playerCount++;
+            if(current->role == 2)
+                criminals_outlaw++;
+            else if(current->role == 3)
+                criminals_renegade++;
+            else if(current->role == 1)
+                alive_deputy++;
         }
-        current = current->right;
+        current = current->left;
     }while(current != currPlayer);
-
-    if(outlaws == 0)
-    {
+    criminals_total = criminals_outlaw+criminals_renegade;
+    cout << "**alive count: " << alive_playerCount << endl;
+    if(alive_playerCount == 0) {
+        cout << "ALL DEAD testing" << endl;
+        cout << "The outlaws win." << endl;
+        return OUTLAW;
+    }
+    else if(criminals_total == 0) {
         cout << "The Sheriff has driven crime from the town.\nTHE LAW WINS \n";
-        return 0;
+        return SHERIFF;
     }
-
-    if(listPlayers(currPlayer) == 1 && currPlayer->role == 3)
-    {
+    else if(alive_playerCount == 1 && criminals_renegade == 1) {
         cout << "The Renegade is the last man standing. \nTHE RENEGADE WINS \n";
-        return 1;
+        return RENEGADE;
     }
-	
-    else if(sheriff->hp == 0)
-    {
+    else if(sheriff->hp == 0) {
         cout << "The Outlaws have killed the Sheriff. \nTHE OUTLAWS WIN \n";
-        return 2;
+        return OUTLAW;
     }
-    else
-    {
-        //cout << "No Win Condition has been met."<<endl;
-        return 3;
+    else if((criminals_renegade+alive_deputy) == alive_playerCount) {
+        cout << "The outlaws win" << endl;
+        return OUTLAW;
     }
-    
+    else {
+        cout << "Game continue" << endl;
+        return GAME_CONTINUE;
+    }
 }
 
 void gatling(player *currPlayer) {
@@ -212,17 +228,17 @@ void gatling(player *currPlayer) {
 	cout << "Gatling Effect Triggered" << endl;
 	arrowsRemaining = currPlayer->arrowsHeld + arrowsRemaining;
 	currPlayer->arrowsHeld = 0;
-    enemy = currPlayer->right;
+    enemy = currPlayer->left;
     while(enemy != currPlayer) {
         if(player_dead_status[enemy->tag] != false) {
-            enemy = enemy->right;
+            enemy = enemy->left;
             continue;
         }
         (enemy->hp)--;
         if(enemy->hp <= 0) {
             sixFeetUnder(enemy);
         }
-        enemy = enemy->right;
+        enemy = enemy->left;
     }
 }
 
@@ -231,7 +247,7 @@ void sixFeetUnder(player *deceased) {
 	if(deceased->hp < 0) {
 		deceased->hp = 0;
 	}
-	cout << "Player " << deceased->tag << " has died."<<endl;
+	cout << "Player " << deceased->tag << " has died." << endl;
 	cout << "They were a";
 	switch(deceased->role) {
 		case 0: cout << " sheriff.";
@@ -243,7 +259,7 @@ void sixFeetUnder(player *deceased) {
 		case 3: cout << " renegade.";
 		break;
 	}
-	cout <<endl << "They dropped " << deceased->arrowsHeld << " arrows."<<endl;
+	cout << endl << "They dropped " << deceased->arrowsHeld << " arrows."<< endl;
 	arrowsRemaining += deceased->arrowsHeld;
 	deceased->arrowsHeld = 0;
 	player_dead_status[deceased->tag] = true;
@@ -439,6 +455,7 @@ void assign_role(player *current_player, int total_playerCount) {
     else if(role_position == 1) {
         if(total_playerCount == 5 || total_playerCount == 6) {
             current_player->role = role_position;
+            deputy_count++;
             role_available[1] = true;
         }
         else {
@@ -475,6 +492,7 @@ void assign_role(player *current_player, int total_playerCount) {
         }
         else {
             current_player->role = role_position;
+            renegades_count++;
             role_available[3] = true;
         }
     }
