@@ -55,6 +55,7 @@ void rollDice(player *currPlayer);
 void initializeDice(die *dice[]);
 void clearDice(die *dice[]);
 void gatling(player *currPlayer);
+int getBehaviorModifier(player *currPlayer, int diceValue);
 //**
 player *first_player = NULL;
 int deputy_count = 0;
