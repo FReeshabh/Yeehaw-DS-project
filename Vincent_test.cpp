@@ -33,16 +33,16 @@ typedef struct player{
     int role;
     int ability;
 	int tag;
+    string player_name;
     player *left;
     player *right;
 }player;
 
-void resolveDice(player *currPlayer, int reroll, int total_playerCount); //master function
-//Supporting Functions
+//Headers
+void resolveDice(player *currPlayer, int reroll, int total_playerCount);
 void kaboom(player *currPlayer);
 void resolveArrows(player *sheriff); 
 void sixFeetUnder(player *deceased); 
-//Supporting Function
 int checkVictoryConditions(player *currPlayer);
 void display(player *first_player);
 void shoot(player *currPlayer, int diceVal, int total_playerCount);
@@ -54,16 +54,21 @@ void rollDice(player *currPlayer);
 void initializeDice(die *dice[]);
 void clearDice(die *dice[]);
 void gatling(player *currPlayer);
+
+//Variables 
 player *first_player = NULL;
 int deputy_count = 0;
 int outlaws_count = 0;
 int renegades_count = 0;
 bool role_available[4];
 bool player_dead_status[8];
+bool name_check[8] = {false};
 player *sheriff;
 int arrowsRemaining = 9;
 die *dice[MAX];
 int winCondition = GAME_CONTINUE;
+string name_list[8] = {"Vincent","Tyler","Rishabh","John","Rosa","Monica","Lisa","Albert"};
+
 
 int main() {
     srand(time(0));
@@ -211,8 +216,8 @@ void sixFeetUnder(player *deceased) {
 	if(deceased->hp < 0) {
 		deceased->hp = 0;
 	}
-	cout << "Player " << deceased->tag << " has died." << endl;
-	cout << "They were a";
+	cout << "**Player " << deceased->tag << " has died." << endl;
+	cout << "**They were a";
 	switch(deceased->role) {
 		case 0: cout << " sheriff.";
 		break;
@@ -223,7 +228,7 @@ void sixFeetUnder(player *deceased) {
 		case 3: cout << " renegade.";
 		break;
 	}
-	cout << endl << deceased->arrowsHeld << " arrows has dropped."<< endl;
+    cout << endl;
 	arrowsRemaining += deceased->arrowsHeld;
 	deceased->arrowsHeld = 0;
 	player_dead_status[deceased->tag] = true;
@@ -262,7 +267,7 @@ void resolveDice(player *currPlayer, int reroll_count, int total_playerCount) {
                     }
 			    }
             }
-            cout << "Rerolling the "<< i+1 <<"th dice for " << reroll_count+1 << " times." << endl;
+            cout << "Rerolling the "<< i+1 <<"th dice for the " << reroll_count+1 << " times." << endl;
             dice[i]->val = (rand() % (5 - 0 + 1)) + 0;
             reroll_record = true;
             reroll_count++;
@@ -422,17 +427,23 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
 player *createPlayer(int position) {
     player *newPlayer = (player*)malloc(sizeof(player));
     int initial_playerCout = (rand() % (8 - 4 + 1)) + 4;
+    int index_namelist = (rand() % (7 - 0 + 1)) + 0;
+    while(name_check[index_namelist] != false) {
+        index_namelist = (rand() % (7 - 0 + 1)) + 0;
+    }
+    name_check[index_namelist] = true;
     newPlayer->hp = 9;
     newPlayer->maxhp = 9;
     newPlayer->arrowsHeld = 0;
     newPlayer->tag = position;
+    newPlayer->player_name = name_list[index_namelist];
+    //cout << "YOUR NAME: " << newPlayer->player_name << endl;
     newPlayer->left = NULL;
     newPlayer->right = NULL;
     return newPlayer;
 }
 
-player *generatePlayers(int playerCount)
-{
+player *generatePlayers(int playerCount) {
     player *new_player, *prev_player;
     first_player = createPlayer(0);
     assign_role(first_player, playerCount);
@@ -519,14 +530,11 @@ void display(player *first_player) {
     player *current;
     current = first_player;
     cout << "***Current Player List Status***" << endl;
-    cout << "Player " << current->tag << " Role: " << current->role;
-    cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
-    current = current->left;
-    while(current->tag != 0) {
-        cout << "Player " << current->tag << " Role: " << current->role;
+    do {
+        cout << "Player " << current->player_name << " Role: " << current->role;
         cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
         current = current->left;
-    }
+    }while(current->tag != 0);
 }
 
 void initializeDice(die *dice[]) {
