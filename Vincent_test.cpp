@@ -1,7 +1,7 @@
 //BIG PROJECT Part 1
 //Tyler Nee, Vincent Hew, Rishabh Tewari
 //Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
-//Vincent version 1.5.6
+//Vincent version 1.7.0
 
 #include <iostream>
 #include <malloc.h>
@@ -44,7 +44,6 @@ void resolveArrows(player *sheriff);
 void sixFeetUnder(player *deceased); 
 //Supporting Function
 int checkVictoryConditions(player *currPlayer);
-//**
 void display(player *first_player);
 void shoot(player *currPlayer, int diceVal, int total_playerCount);
 player *createPlayer(int position);
@@ -55,35 +54,52 @@ void rollDice(player *currPlayer);
 void initializeDice(die *dice[]);
 void clearDice(die *dice[]);
 void gatling(player *currPlayer);
-//**
 player *first_player = NULL;
 int deputy_count = 0;
 int outlaws_count = 0;
 int renegades_count = 0;
 bool role_available[4];
 bool player_dead_status[8];
-//**    
 player *sheriff;
 int arrowsRemaining = 9;
 die *dice[MAX];
-int winCondition = 3;
+int winCondition = GAME_CONTINUE;
 
 int main() {
     srand(time(0));
 	initializeDice(dice);
+    int round_count = 1;
     int initial_playerCount = (rand() % (8 - 4 + 1)) + 4;
+    player *current;
     cout << "Player initial amount: " << initial_playerCount << endl;
     first_player = generatePlayers(initial_playerCount);
     display(first_player);
-    cout << endl << "Game Start" << endl;
-
-
+    //game start
+    cout << endl << "****Game Start****" << endl;
+    current = first_player;
+    while(winCondition == GAME_CONTINUE) {
+        cout << "****Round: " << round_count << endl;
+        for(int i = 0; i < initial_playerCount; i++) {
+            resolveDice(current, 0, initial_playerCount);
+            current = current->left;
+            cout << endl;
+            display(first_player);
+            cout << endl;
+            if(winCondition != GAME_CONTINUE) {
+                return 0;
+            }
+        }
+        cout << "****End of round: " << round_count << endl;
+        cout << endl;
+        round_count++;
+    }
+    //end of game
    return 0;
 }
 
 
 void resolveArrows(player *currPlayer) {
-	cout << "RESOLVING ARROWS" << endl;
+	cout << "No more arrow token!" << endl;
 	player *current = currPlayer;
 	do {
 		current->hp -= current->arrowsHeld;
@@ -95,11 +111,9 @@ void resolveArrows(player *currPlayer) {
         current->arrowsHeld = 0;
         current = current->left;
 	} while(current != currPlayer);
-	cout << "Arrows Resolved...\n";
 }
 
 void giveBeer(player *currPlayer, int total_playerCount) {
-	cout << "Giving Beer..." << endl;
     int target_position = rand() % total_playerCount;
     player *recipient = currPlayer;
     while(player_dead_status[target_position] != false) {
@@ -118,7 +132,7 @@ void giveBeer(player *currPlayer, int total_playerCount) {
 }
 
 void kaboom(player *currPlayer) {
-    cout << "Dynamite Triggered: Rerolls Restricted" << endl;
+    cout << "OH NO! Dynamite exploded!" << endl;
     for(int i = 0; i < MAX; i++) {
         dice[i]->locked = true;
     }
@@ -169,14 +183,13 @@ int checkVictoryConditions(player *currPlayer) {
         return OUTLAW;
     }
     else {
-        cout << "GAME CONTINUE" << endl;
         return GAME_CONTINUE;
     }
 }
 
 void gatling(player *currPlayer) {
+    cout << "It's high noon. BANG!" << endl;
     player *enemy;
-	cout << "Gatling Effect Triggered" << endl;
 	arrowsRemaining = currPlayer->arrowsHeld + arrowsRemaining;
 	currPlayer->arrowsHeld = 0;
     enemy = currPlayer->left;
@@ -210,7 +223,7 @@ void sixFeetUnder(player *deceased) {
 		case 3: cout << " renegade.";
 		break;
 	}
-	cout << endl << "They dropped " << deceased->arrowsHeld << " arrows."<< endl;
+	cout << endl << deceased->arrowsHeld << " arrows has dropped."<< endl;
 	arrowsRemaining += deceased->arrowsHeld;
 	deceased->arrowsHeld = 0;
 	player_dead_status[deceased->tag] = true;
@@ -218,27 +231,47 @@ void sixFeetUnder(player *deceased) {
 
 void rollDice(player *currPlayer) {
     cout << "current player: " << currPlayer->tag << "\trole: " << currPlayer->role << " is rolling the dice." << endl;
+    cout << "Current dice result:\t";
     for(int i = 0; i < MAX; i++) {
-        if(dice[i]->locked == false) {
-            dice[i]->val = (rand()%(5 - 0 + 1) + 0);
-			cout << "Dice["<<i<<"] rolled as " << dice[i]->val<<endl;
-        }
-		else {
-			cout << "Dice["<<i<<"] is locked as " << dice[i]->val<<endl;
-		}
+        dice[i]->val = (rand()%(5 - 0 + 1) + 0);
+        cout << dice[i]->val << "\t";
     }
-    cout << "current player tag: " << currPlayer->tag << " finished." << endl;
+    cout << endl;
 }
 
-void resolveDice(player *currPlayer, int reroll, int total_playerCount) {
+void resolveDice(player *currPlayer, int reroll_count, int total_playerCount) {
     int gats = 0;       //Holds Amount of Gatling Die
     int dyna = 0;       //Holds Amount of Dynamite Die
     int bullet_1 = 0;
     int bullet_2 = 0;
     int beer = 0;
     int reroll_option;
+    bool reroll_record = false;
     rollDice(currPlayer);
     for(int i = 0; i < MAX; i++) {
+        reroll_option = (rand() % (2 - 1 + 1)) + 1;
+        if(reroll_count < 2 && dice[i]->val != DYNAMITE && reroll_option == 1) {
+            if(dice[i]->val == ARROW) {
+                currPlayer->arrowsHeld++;
+                arrowsRemaining--;
+                if(arrowsRemaining == 0) {
+				    resolveArrows(currPlayer);
+                    winCondition = checkVictoryConditions(currPlayer);
+                    if(winCondition != GAME_CONTINUE) {
+                        return;
+                    }
+			    }
+            }
+            cout << "Rerolling the "<< i+1 <<"th dice for " << reroll_count+1 << " times." << endl;
+            dice[i]->val = (rand() % (5 - 0 + 1)) + 0;
+            reroll_record = true;
+            reroll_count++;
+            i--;
+            continue;
+        }
+        else if(reroll_option == 2) {
+            reroll_count = 0;
+        }
         switch (dice[i]->val) {
             case DYNAMITE:
             {
@@ -246,7 +279,10 @@ void resolveDice(player *currPlayer, int reroll, int total_playerCount) {
                 dyna++;
                 if(dyna == 3) {
                     kaboom(currPlayer);
-                    checkVictoryConditions(currPlayer);
+                    winCondition = checkVictoryConditions(currPlayer);
+                    if(winCondition != GAME_CONTINUE) {
+                        return;
+                    }
                 }
                 break;
             }
@@ -256,7 +292,10 @@ void resolveDice(player *currPlayer, int reroll, int total_playerCount) {
                 arrowsRemaining--;
                 if(arrowsRemaining == 0) {
 				    resolveArrows(currPlayer);
-                    checkVictoryConditions(currPlayer);
+                    winCondition = checkVictoryConditions(currPlayer);
+                    if(winCondition != GAME_CONTINUE) {
+                        return;
+                    }
 			    }
                 break;
             }
@@ -265,7 +304,10 @@ void resolveDice(player *currPlayer, int reroll, int total_playerCount) {
                 gats++;
                 if(gats == 3) {
                     gatling(currPlayer);
-                    checkVictoryConditions(currPlayer);
+                    winCondition = checkVictoryConditions(currPlayer);
+                    if(winCondition != GAME_CONTINUE) {
+                        return;
+                    }
                 }
                 break;
             }
@@ -286,29 +328,31 @@ void resolveDice(player *currPlayer, int reroll, int total_playerCount) {
             }
         }
     }
-    if(reroll <= 2) {
-        reroll++;
-        //option 1: no reroll   option 2: reroll some   option 3: reroll all
-        reroll_option = (rand() % (3 - 1 + 1)) + 1;
-        if(reroll_option == 1) {
-            cout << "option 1" << endl;
+    if(reroll_record == true) {
+        cout << "Updated dice result:\t";
+        for(int i = 0; i < MAX; i++) {
+                cout << dice[i]->val << "\t";
         }
-        else if(reroll_option == 2) {
-            cout << "option 2" << endl;
-        }
-        else if(reroll_option == 3) {
-            cout << "option 3" << endl;
-        }
+        cout << endl;
     }
     for(int i = 0; i < bullet_1; i++) {
         shoot(currPlayer, 1, total_playerCount);
+        winCondition = checkVictoryConditions(currPlayer);
+        if(winCondition != GAME_CONTINUE) {
+            return;
+        }
     }
     for(int i = 0; i < bullet_2; i++) {
         shoot(currPlayer, 2, total_playerCount);
+        winCondition = checkVictoryConditions(currPlayer);
+        if(winCondition != GAME_CONTINUE) {
+            return;
+        }
     }
     for(int i = 0; i < beer; i++) {
         giveBeer(currPlayer, total_playerCount);
     }
+    clearDice(dice);
 }
 
 void shoot(player *currPlayer, int diceVal, int total_playerCount) {
@@ -326,12 +370,14 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
                 current = current->right;
             }
             target = current->right;
+            cout << "Player "<< target->tag << " got shot." << endl;
         }
         else {
             while(player_dead_status[current->left->tag] != false) {
                 current = current->left;
             }
             target = current->left;
+            cout << "Player "<< target->tag << " got shot." << endl;
         }
 	}
     else if(diceVal == 2) {
@@ -349,6 +395,7 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
                     current = current->right;
                 }
                 target = current->right;
+                cout << "Player "<< target->tag << " got shot." << endl;
             }
             else {
                 while(player_dead_status[current->left->tag] != false) {
@@ -359,6 +406,7 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
                     current = current->left;
                 }
                 target = current->left;
+                cout << "Player "<< target->tag << " got shot." << endl;
             }
         }
     }
