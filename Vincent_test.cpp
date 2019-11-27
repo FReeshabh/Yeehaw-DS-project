@@ -1,7 +1,7 @@
 //BIG PROJECT Part 1
 //Tyler Nee, Vincent Hew, Rishabh Tewari
-//Resolve Arrows was left out purposefully; it was causing strange errors when it wiped out more than one player at once.
-//Vincent version 1.7.0
+//game working correctly except naming issue
+//Vincent version 1.7.5
 
 #include <iostream>
 #include <malloc.h>
@@ -54,6 +54,7 @@ void rollDice(player *currPlayer);
 void initializeDice(die *dice[]);
 void clearDice(die *dice[]);
 void gatling(player *currPlayer);
+void name_assign(player *currPlayer);
 
 //Variables 
 player *first_player = NULL;
@@ -62,12 +63,11 @@ int outlaws_count = 0;
 int renegades_count = 0;
 bool role_available[4];
 bool player_dead_status[8];
-bool name_check[8] = {false};
+bool name_check[8];
 player *sheriff;
 int arrowsRemaining = 9;
 die *dice[MAX];
 int winCondition = GAME_CONTINUE;
-string name_list[8] = {"Vincent","Tyler","Rishabh","John","Rosa","Monica","Lisa","Albert"};
 
 
 int main() {
@@ -75,9 +75,17 @@ int main() {
 	initializeDice(dice);
     int round_count = 1;
     int initial_playerCount = (rand() % (8 - 4 + 1)) + 4;
-    player *current;
+    player *current, *naming_current;
     cout << "Player initial amount: " << initial_playerCount << endl;
     first_player = generatePlayers(initial_playerCount);
+    naming_current = first_player;
+    
+    do {
+        cout << "get in" << endl;
+        name_assign(naming_current);
+        naming_current = naming_current->left;
+    }while(naming_current->tag != 0);
+    
     display(first_player);
     //game start
     cout << endl << "****Game Start****" << endl;
@@ -427,20 +435,26 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
 player *createPlayer(int position) {
     player *newPlayer = (player*)malloc(sizeof(player));
     int initial_playerCout = (rand() % (8 - 4 + 1)) + 4;
-    int index_namelist = (rand() % (7 - 0 + 1)) + 0;
-    while(name_check[index_namelist] != false) {
-        index_namelist = (rand() % (7 - 0 + 1)) + 0;
-    }
-    name_check[index_namelist] = true;
     newPlayer->hp = 9;
     newPlayer->maxhp = 9;
     newPlayer->arrowsHeld = 0;
     newPlayer->tag = position;
-    newPlayer->player_name = name_list[index_namelist];
-    //cout << "YOUR NAME: " << newPlayer->player_name << endl;
     newPlayer->left = NULL;
     newPlayer->right = NULL;
     return newPlayer;
+}
+
+void name_assign(player *currPlayer) {
+    string name_list[8] = {"Vincent","Tyler","Rishabh","John","Rosa","Monica","Lisa","Albert"};
+    int index_namelist = (rand() % (7 - 0 + 1)) + 0;
+    while(name_check[index_namelist] != false) {
+        index_namelist = (rand() % (7 - 0 + 1)) + 0;
+        cout << "finding another" << endl;
+    }
+    name_check[index_namelist] = true;
+    cout << "index: " << index_namelist << endl; 
+    currPlayer->player_name = name_list[index_namelist];
+    cout << "leaving" << endl;
 }
 
 player *generatePlayers(int playerCount) {
@@ -531,7 +545,7 @@ void display(player *first_player) {
     current = first_player;
     cout << "***Current Player List Status***" << endl;
     do {
-        cout << "Player " << current->player_name << " Role: " << current->role;
+        cout << "Player " << current->tag << " Role: " << current->role;
         cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
         current = current->left;
     }while(current->tag != 0);
