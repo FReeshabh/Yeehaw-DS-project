@@ -1,7 +1,7 @@
 //BIG PROJECT Part 1
 //Tyler Nee, Vincent Hew, Rishabh Tewari
 //game working correctly except naming issue
-//Vincent version 1.7.5
+//Vincent version 1.7.7
 
 #include <iostream>
 #include <malloc.h>
@@ -79,13 +79,6 @@ int main() {
     cout << "Player initial amount: " << initial_playerCount << endl;
     first_player = generatePlayers(initial_playerCount);
     naming_current = first_player;
-    
-    do {
-        cout << "get in" << endl;
-        name_assign(naming_current);
-        naming_current = naming_current->left;
-    }while(naming_current->tag != 0);
-    
     display(first_player);
     //game start
     cout << endl << "****Game Start****" << endl;
@@ -439,21 +432,47 @@ player *createPlayer(int position) {
     newPlayer->maxhp = 9;
     newPlayer->arrowsHeld = 0;
     newPlayer->tag = position;
+    newPlayer->player_name;
     newPlayer->left = NULL;
     newPlayer->right = NULL;
+    //name_assign(newPlayer);
     return newPlayer;
 }
 
 void name_assign(player *currPlayer) {
+    cout << "get in" << endl;
     string name_list[8] = {"Vincent","Tyler","Rishabh","John","Rosa","Monica","Lisa","Albert"};
     int index_namelist = (rand() % (7 - 0 + 1)) + 0;
+    cout << "nameList available check: " << endl;
+    for(int i = 0; i < 8; i++) {
+        cout << "list pos (" << i << ") status: ";
+        if (name_check[index_namelist] != false) {
+            cout << "Used" << endl;
+        }
+        else if(name_check[index_namelist] == false) {
+            cout << "Available" << endl;
+        }
+    }
     while(name_check[index_namelist] != false) {
         index_namelist = (rand() % (7 - 0 + 1)) + 0;
         cout << "finding another" << endl;
     }
     name_check[index_namelist] = true;
-    cout << "index: " << index_namelist << endl; 
+    cout << "**New status: " << endl;
+    cout << "list pos (" << index_namelist << ") status: ";
+    if (name_check[index_namelist] != false) {
+            cout << "Used" << endl;
+    }
+    else if(name_check[index_namelist] == false) {
+        cout << "Available" << endl;
+    }
+    cout << "assigning the name: " << name_list[index_namelist] << endl;
+    cout << "target spot: " << currPlayer->player_name << endl;
     currPlayer->player_name = name_list[index_namelist];
+    cout << "Assigned for player tag: ";
+    cout << currPlayer->tag << endl;
+    cout << " as ";
+    cout << currPlayer->player_name << endl;
     cout << "leaving" << endl;
 }
 
