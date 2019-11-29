@@ -39,35 +39,40 @@ typedef struct player{
 }player;
 
 //Headers
-void resolveDice(player *currPlayer, int reroll, int total_playerCount);
-void kaboom(player *currPlayer);
-void resolveArrows(player *sheriff); 
-void sixFeetUnder(player *deceased); 
-int checkVictoryConditions(player *currPlayer);
-void display(player *first_player);
-void shoot(player *currPlayer, int diceVal, int total_playerCount);
+//create player functions
 player *createPlayer(int position);
 player *generatePlayers(int playerCount);
 void assign_role(player *current_player, int total_playerCount);
-void giveBeer(player *currPlayer, int total_playerCount);
-void rollDice(player *currPlayer);
-void initializeDice(die *dice[]);
-void clearDice(die *dice[]);
-void gatling(player *currPlayer);
 void name_assign(player *currPlayer);
+//functions for roll and resolve the dices
+void initializeDice(die *dice[]);
+void rollDice(player *currPlayer);
+void clearDice(die *dice[]);
+void resolveDice(player *currPlayer, int reroll, int total_playerCount);
+//each dice value action
+void kaboom(player *currPlayer);
+void resolveArrows(player *sheriff); 
+void shoot(player *currPlayer, int diceVal, int total_playerCount);
+void giveBeer(player *currPlayer, int total_playerCount);
+void gatling(player *currPlayer);
+//victory check functions
+void sixFeetUnder(player *deceased); 
+int checkVictoryConditions(player *currPlayer);
+//display function
+void display(player *first_player);
 
 //Variables 
-player *first_player = NULL;
-int deputy_count = 0;
-int outlaws_count = 0;
-int renegades_count = 0;
-bool role_available[4];
-bool player_dead_status[8];
-bool name_check[8];
-player *sheriff;
-int arrowsRemaining = 9;
-die *dice[MAX];
-int winCondition = GAME_CONTINUE;
+player *first_player = NULL;            //first player as root
+int deputy_count = 0;                   //availabe deputy count
+int outlaws_count = 0;                  //available outlaw count
+int renegades_count = 0;                //available renegades count
+bool role_available[4];                 //check which roles still need to be assign
+bool player_dead_status[8];             //check which player is dead
+bool name_check[8];                     //naming system to check which name are used
+player *sheriff;                        //pointer always point to sheriff
+int arrowsRemaining = 9;                //the number of remaining arrow tokens
+die *dice[MAX];                         //keep the dice value
+int winCondition = GAME_CONTINUE;       //win condition = 4
 
 
 int main() {
@@ -75,11 +80,11 @@ int main() {
 	initializeDice(dice);
     int round_count = 1;
     int initial_playerCount = (rand() % (8 - 4 + 1)) + 4;
-    player *current, *naming_current;
+    player *current;
     cout << "Player initial amount: " << initial_playerCount << endl;
     first_player = generatePlayers(initial_playerCount);
-    naming_current = first_player;
     display(first_player);
+    //finished generating players in the game
     //game start
     cout << endl << "****Game Start****" << endl;
     current = first_player;
@@ -103,7 +108,10 @@ int main() {
    return 0;
 }
 
-
+// NAME : resolveArrows
+// INPUT PARAMETERS: currPlayer
+// OUTPUT: none 
+// PURPOSE: triggered when there are no more arrow token remains and take 1 hp aways from every players. 
 void resolveArrows(player *currPlayer) {
 	cout << "No more arrow token!" << endl;
 	player *current = currPlayer;
@@ -119,6 +127,10 @@ void resolveArrows(player *currPlayer) {
 	} while(current != currPlayer);
 }
 
+// NAME : giveBeer
+// INPUT PARAMETERS: currPlayer, total_playerCount
+// OUTPUT: none 
+// PURPOSE: Heal random target 1 hp when it triggered. 
 void giveBeer(player *currPlayer, int total_playerCount) {
     int target_position = rand() % total_playerCount;
     player *recipient = currPlayer;
@@ -137,6 +149,10 @@ void giveBeer(player *currPlayer, int total_playerCount) {
 	}
 }
 
+// NAME : kaboom
+// INPUT PARAMETERS: currPlayer
+// OUTPUT: none 
+// PURPOSE: take 1 hp away from the current player when it triggered. 
 void kaboom(player *currPlayer) {
     cout << "OH NO! Dynamite exploded!" << endl;
     for(int i = 0; i < MAX; i++) {
@@ -148,6 +164,10 @@ void kaboom(player *currPlayer) {
     }
 }
 
+// NAME : checkVictoryConditions
+// INPUT PARAMETERS: currPlayer
+// OUTPUT: it returns the current game status: OUTLAW, RENEGADE, SHERIFF, or GAME_CONTINUE
+// PURPOSE: Determine who win the game or the game continue. 
 int checkVictoryConditions(player *currPlayer) {
     int criminals_total = 0;
     int criminals_outlaw = 0;
@@ -193,6 +213,10 @@ int checkVictoryConditions(player *currPlayer) {
     }
 }
 
+// NAME : gatling
+// INPUT PARAMETERS: currPlayer
+// OUTPUT: none
+// PURPOSE: shoot every player once except the player who triggered. 
 void gatling(player *currPlayer) {
     cout << "It's high noon. BANG!" << endl;
     player *enemy;
@@ -212,7 +236,10 @@ void gatling(player *currPlayer) {
     }
 }
 
-
+// NAME : sixFeetUnder
+// INPUT PARAMETERS: deceased
+// OUTPUT: output messages
+// PURPOSE: reveal the player role when they died. 
 void sixFeetUnder(player *deceased) {
 	if(deceased->hp < 0) {
 		deceased->hp = 0;
@@ -235,6 +262,10 @@ void sixFeetUnder(player *deceased) {
 	player_dead_status[deceased->tag] = true;
 }
 
+// NAME : rollDice
+// INPUT PARAMETERS: currPlayer
+// OUTPUT: output messages
+// PURPOSE: roll the dice and keep in dice array. 
 void rollDice(player *currPlayer) {
     cout << "current player: " << currPlayer->tag << "\trole: " << currPlayer->role << " is rolling the dice." << endl;
     cout << "Current dice result:\t";
@@ -245,6 +276,10 @@ void rollDice(player *currPlayer) {
     cout << endl;
 }
 
+// NAME : resolveDice
+// INPUT PARAMETERS: currPlayer, reroll_count, total_playerCount
+// OUTPUT: none
+// PURPOSE: resolve the dice for current player
 void resolveDice(player *currPlayer, int reroll_count, int total_playerCount) {
     int gats = 0;       //Holds Amount of Gatling Die
     int dyna = 0;       //Holds Amount of Dynamite Die
@@ -361,6 +396,10 @@ void resolveDice(player *currPlayer, int reroll_count, int total_playerCount) {
     clearDice(dice);
 }
 
+// NAME : shoot
+// INPUT PARAMETERS: currPlayer, diceVal, total_playerCount
+// OUTPUT: none
+// PURPOSE: shoot either left or right of range one and two when it triggered
 void shoot(player *currPlayer, int diceVal, int total_playerCount) {
     int random_target = (rand() % (2 - 1 + 1)) + 1;
     int alive_playerCount = 0;
@@ -425,6 +464,10 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
 
 } 
 
+// NAME : createPlayer
+// INPUT PARAMETERS: position
+// OUTPUT: newPlayer
+// PURPOSE: create new player node
 player *createPlayer(int position) {
     player *newPlayer = (player*)malloc(sizeof(player));
     int initial_playerCout = (rand() % (8 - 4 + 1)) + 4;
@@ -439,6 +482,10 @@ player *createPlayer(int position) {
     return newPlayer;
 }
 
+// NAME : name_assign
+// INPUT PARAMETERS: currPlayer
+// OUTPUT: none
+// PURPOSE: give random player name to each player
 void name_assign(player *currPlayer) {
     cout << "get in" << endl;
     string name_list[8] = {"Vincent","Tyler","Rishabh","John","Rosa","Monica","Lisa","Albert"};
@@ -476,6 +523,10 @@ void name_assign(player *currPlayer) {
     cout << "leaving" << endl;
 }
 
+// NAME : generatePlayers
+// INPUT PARAMETERS: playerCount
+// OUTPUT: first_player
+// PURPOSE: generate players in the game
 player *generatePlayers(int playerCount) {
     player *new_player, *prev_player;
     first_player = createPlayer(0);
@@ -493,6 +544,10 @@ player *generatePlayers(int playerCount) {
     return first_player;
 }
 
+// NAME : assign_role
+// INPUT PARAMETERS: current_player, total_playerCount
+// OUTPUT: none
+// PURPOSE: assign different random roles for each player
 void assign_role(player *current_player, int total_playerCount) {
     int role_position = (rand() % (3 - 0 + 1)) + 0;
     int i;
@@ -558,7 +613,11 @@ void assign_role(player *current_player, int total_playerCount) {
         }
     }
 }
-//displayer player in the game
+
+// NAME : display
+// INPUT PARAMETERS: first_player
+// OUTPUT: none
+// PURPOSE: display the current player list status
 void display(player *first_player) {
     player *current;
     current = first_player;
@@ -570,6 +629,10 @@ void display(player *first_player) {
     }while(current->tag != 0);
 }
 
+// NAME : initializeDice
+// INPUT PARAMETERS: dice[]
+// OUTPUT: none
+// PURPOSE: initialize the dice
 void initializeDice(die *dice[]) {
 	for(int i = 0; i < MAX; i++) {
 		die *newDie = (die*)malloc(sizeof(die));
@@ -579,6 +642,10 @@ void initializeDice(die *dice[]) {
 	}
 }
 
+// NAME : clearDice
+// INPUT PARAMETERS: dice[]
+// OUTPUT: none
+// PURPOSE: clear the old dice values
 void clearDice(die *dice[]) {
 	for(int i = 0; i < MAX; i++) {
 		dice[i]->locked = false;
