@@ -1,7 +1,7 @@
 //BIG PROJECT Part 1
 //Tyler Nee, Vincent Hew, Rishabh Tewari
 //game working correctly except naming issue
-//Vincent version 1.7.7
+//Vincent version 1.7.8
 
 #include <iostream>
 #include <malloc.h>
@@ -105,7 +105,7 @@ int main() {
         round_count++;
     }
     //end of game
-   return 0;
+    return 0;
 }
 
 // NAME : resolveArrows
@@ -461,7 +461,6 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
 	if(target->hp <= 0) {
         sixFeetUnder(target);
     }
-
 } 
 
 // NAME : createPlayer
