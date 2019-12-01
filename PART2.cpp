@@ -2,7 +2,7 @@
 //Tyler Nee, Vincent Hew, Rishabh Tewari
 //game working correctly except naming issue
 //using vincent_test part 1 version 1.7.8
-//part 2 version 1.7.10
+//part 2 version 1.8.1
 
 #include <iostream>
 #include <time.h>
@@ -81,6 +81,8 @@ void create_node(int vertex, int position);
 void generate_graph();
 void print_graph();
 int role_reveal(int position);
+//decision
+int decision(int dice_val, player *currPlayer, int alive_count);
 
 //Variables 
 player *first_player = NULL;            //first player as root
@@ -949,6 +951,7 @@ void generate_graph() {
     
 }
 
+//graph testing function
 void print_graph() {
     node *current;
     cout << endl << "favor graph output: " << endl;
@@ -959,5 +962,114 @@ void print_graph() {
             current = current->next;
         }
         cout << endl;
+    }
+}
+
+//target selecting
+//return position
+int decision(int dice_val, player *currPlayer, int alive_count) {
+    player *current = currPlayer;
+    player *left_target = currPlayer;
+    player *right_target = currPlayer;
+    node *graph_head = player_graph[current->tag]->head;
+    node *left_list, *right_list;
+    if(dice_val == SHOOT_1) {
+        while(player_dead_status[right_target->right->tag] != false) {
+            right_target = right_target->right;
+        }
+        right_target = right_target->right;
+        while(player_dead_status[left_target->left->tag] != false) {
+            left_target = left_target->left;
+        }
+        left_target = left_target->left;
+        while(graph_head != NULL) {
+            if(left_target->tag == graph_head->pos) {
+                left_list = graph_head;
+            }
+            else if(right_target->tag == graph_head->pos) {
+                right_list = graph_head;
+            }
+            graph_head = graph_head->next;
+        }
+        if(left_list->favor_point == right_list->favor_point) {
+            if(left_target->hp > right_target->hp)
+                return right_target->tag;
+            else if(left_target->hp < right_target->hp)
+                return left_target->tag;
+            else {
+                int random_decision = (rand() % (2 - 1 + 1)) + 1;
+                if(random_decision == 1)
+                    return left_target->tag;
+                else
+                    return right_target->tag;
+            }
+        }
+        else if(left_list->favor_point > right_list->favor_point)
+            return right_target->tag;
+        else
+            return left_target->tag;
+    }
+    else if(dice_val == SHOOT_2) {
+        if(alive_count == 2 || alive_count == 3) {
+            decision(1, currPlayer, alive_count);
+        }
+        else {
+            while(player_dead_status[right_target->right->tag] != false) {
+                    right_target = right_target->right;
+                }
+            right_target = right_target->right;
+            while(player_dead_status[right_target->right->tag] != false) {
+                right_target = right_target->right;
+            }
+            right_target = right_target->right;
+            while(player_dead_status[left_target->right->tag] != false) {
+                    left_target = left_target->right;
+                }
+            left_target = left_target->right;
+            while(player_dead_status[left_target->right->tag] != false) {
+                left_target = left_target->right;
+            }
+            left_target = left_target->right;
+        }
+        if(left_list->favor_point == right_list->favor_point) {
+            if(left_target->hp > right_target->hp)
+                return right_target->tag;
+            else if(left_target->hp < right_target->hp)
+                return left_target->tag;
+            else {
+                int random_decision = (rand() % (2 - 1 + 1)) + 1;
+                if(random_decision == 1)
+                    return left_target->tag;
+                else
+                    return right_target->tag;
+            }
+        }
+        else if(left_list->favor_point > right_list->favor_point)
+            return right_target->tag;
+        else
+        return left_target->tag;
+    }
+    else if(dice_val == BEER) {
+        if(current->role == RENEGADE) {
+            if(current->hp < (current->hp/2)) {
+                return current->tag;
+            }
+            else if(sheriff->hp < (sheriff->hp/2) && alive_count != 2) {
+                return sheriff->tag;
+            }
+            else if(alive_count == 4) {
+                int random_decision = (rand() % (2 - 1 + 1)) + 1;
+                if(random_decision == 1) {
+                    while(player_dead_status[current->left->tag] != false || current->left == sheriff) {
+                        current = current->left;
+                    }
+                    current = current->left;
+                    return current->tag;
+                }
+                else {
+
+                }
+            }
+        }
     }
 }
