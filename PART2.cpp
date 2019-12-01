@@ -854,6 +854,10 @@ void create_node(int vertex, int position) {
     }
 }
 
+// NAME : role_reveal
+// INPUT PARAMETERS: position
+// OUTPUT: integer
+// PURPOSE: Reveal the role of the player
 int role_reveal(int position) {
     player *current = first_player;
     while(current->tag != position) {
@@ -862,7 +866,10 @@ int role_reveal(int position) {
     return current->role;
 }
 
-
+// NAME : generate_graph
+// INPUT PARAMETERS: none
+// OUTPUT: none
+// PURPOSE: generate the graph
 void generate_graph() {
     player *current = first_player;
     node *current_graph;
