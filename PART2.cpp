@@ -1,7 +1,8 @@
 //BIG PROJECT Part 2
 //Tyler Nee, Vincent Hew, Rishabh Tewari
 //game working correctly except naming issue
-//using vincent_test version 1.7.8
+//using vincent_test part 1 version 1.7.8
+//part 2 version 1.7.9
 
 #include <iostream>
 #include <time.h>
@@ -18,6 +19,7 @@
 #define GATLING 3
 #define DYNAMITE 4
 #define ARROW 5
+#define MAX_head 8
 using namespace std;
 
 typedef struct die{
@@ -36,6 +38,16 @@ typedef struct player{
     player *left;
     player *right;
 }player;
+
+typedef struct node {
+    int favor_point;
+    int pos;
+    node *next;
+}node;
+
+typedef struct list {
+    node *head;
+}list;
 
 //Headers
 //create player functions
@@ -63,6 +75,12 @@ void display(player *first_player);
 //When you call random, the func will instead return a value that is checked against random,
 //depending on the current player's role and the value of the dice
 int getBehaviorModifier(player *currPlayer, int diceValue); 
+//graph
+void create_head();
+void create_node(int vertex, int position);
+void generate_graph();
+void print_graph();
+int role_reveal(int position);
 
 //Variables 
 player *first_player = NULL;            //first player as root
@@ -72,16 +90,19 @@ int renegades_count = 0;                //available renegades count
 bool role_available[4];                 //check which roles still need to be assign
 bool player_dead_status[8];             //check which player is dead
 bool name_check[8];                     //naming system to check which name are used
+bool graph_check = false;
 player *sheriff;                        //pointer always point to sheriff
 int arrowsRemaining = 9;                //the number of remaining arrow tokens
 die *dice[MAX];                         //keep the dice value
 int winCondition = GAME_CONTINUE;       //win condition = 4
+list *player_graph[MAX_head] = {0};
+int initial_playerCount;
 
 int main() {
     srand(time(0));
 	initializeDice(dice);
     int round_count = 1;
-    int initial_playerCount = (rand() % (8 - 4 + 1)) + 4;
+    initial_playerCount = (rand() % (8 - 4 + 1)) + 4;
     player *current;
     cout << "Player initial amount: " << initial_playerCount << endl;
     first_player = generatePlayers(initial_playerCount);
@@ -90,6 +111,7 @@ int main() {
     //game start
     cout << endl << "****Game Start****" << endl;
     current = first_player;
+    /*
     while(winCondition == GAME_CONTINUE) {
         cout << "****Round: " << round_count << endl;
         for(int i = 0; i < initial_playerCount; i++) {
@@ -106,7 +128,13 @@ int main() {
         cout << endl;
         round_count++;
     }
+    */
     //end of game
+    //graph testing
+    cout << endl << ">>ERROR: graph testing";
+    generate_graph();
+    generate_graph();
+    print_graph();
     return 0;
 }
 
@@ -793,4 +821,134 @@ int getBehaviorModifier(player *currPlayer, int dieValue)
 		be = 7;
 	//Arrows have no utility and will always be rerolled.
 	return be;
+}
+
+//graph
+void create_head() {
+    for(int i = 0; i < MAX_head; i++) {
+        player_graph[i] = (list*)malloc(sizeof(list));
+        player_graph[i]->head = NULL;
+    }
+}
+
+void create_node(int vertex, int position) {
+    node *current, *newNode;
+    if(player_graph[vertex]->head == NULL) {
+        newNode = (node*)malloc(sizeof(node));
+        newNode->pos = position;
+        newNode->favor_point = 1;
+        newNode->next = NULL;
+        player_graph[vertex]->head = newNode;
+    }
+    else {
+        newNode = (node*)malloc(sizeof(node));
+        newNode->pos = position;
+        newNode->favor_point = 1;
+        newNode->next = NULL;
+        current = player_graph[vertex]->head;
+        while(current->next != NULL) {
+            current = current->next;
+        }
+        current->next = newNode;
+    }
+}
+
+int role_reveal(int position) {
+    player *current = first_player;
+    while(current->tag != position) {
+        current = current->left;
+    }
+    return current->role;
+}
+
+
+void generate_graph() {
+    player *current = first_player;
+    node *current_graph;
+    int index;
+    if(graph_check == false) {
+        create_head();
+        for(int i = 0; i < initial_playerCount; i++) {
+            for(int j = 0; j < initial_playerCount; j++) {
+                create_node(i, j);
+            }
+        }
+        graph_check = true;
+    }
+    else {
+        for(int i = 0; i < initial_playerCount; i++) {
+            while(current->tag != i) {
+                current = current->left;
+            }
+            current_graph = player_graph[i]->head;
+            switch (current->role) {
+            case SHERIFF:
+                while(current_graph != NULL) {
+                    if(current_graph->pos == current->tag) {
+                        current_graph->favor_point += 1;
+                    }
+                    else {
+                        current_graph->favor_point -= 1;
+                    }
+                    current_graph = current_graph->next;
+                }
+                break;
+            case DEPUTY:
+                index = 0;
+                while(current_graph != NULL) {
+                    if(current_graph->pos == current->tag) {
+                        current_graph->favor_point = 1;
+                    }
+                    else if(role_reveal(index) == 0) {
+                        current_graph->favor_point += 1;
+                    }
+                    else {
+                        current_graph->favor_point -= 1;
+                    }
+                    current_graph = current_graph->next;
+                    index++;
+                }
+                break;
+            case OUTLAW:
+                index = 0;
+                while(current_graph != NULL) {
+                    if(current_graph->pos == current->tag) {
+                        current_graph->favor_point += 1;
+                    }
+                    else if(role_reveal(index) == 0) {
+                        current_graph->favor_point -= 1;
+                    }
+                    current_graph = current_graph->next;
+                    index++;
+                }
+                break;
+            case RENEGADE:
+                index = 0;
+                while(current_graph != NULL) {
+                    if(current_graph->pos == current->tag) {
+                        current_graph->favor_point += 1;
+                    }
+                    current_graph = current_graph->next;
+                    index++;
+                }
+                break;
+            default:
+                cout << "***ERROR: generate_graph switch default." << endl;
+                break;
+            }
+        }
+    }
+}
+
+void print_graph() {
+    node *current;
+    cout << endl << "favor graph output: " << endl;
+    for(int i = 0; i < initial_playerCount; i++) {
+        current = player_graph[i]->head;
+        while(current != NULL) {
+            cout << "\t" << current->favor_point;
+            current = current->next;
+        }
+        cout << endl;
+    }
 }
