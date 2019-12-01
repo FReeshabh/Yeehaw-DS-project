@@ -968,111 +968,295 @@ void print_graph() {
     }
 }
 
-//target selecting
-//return position
-int decision(int dice_val, player *currPlayer, int alive_count) {
-    player *current = currPlayer;
-    player *left_target = currPlayer;
-    player *right_target = currPlayer;
-    node *graph_head = player_graph[current->tag]->head;
-    node *left_list, *right_list;
-    if(dice_val == SHOOT_1) {
-        while(player_dead_status[right_target->right->tag] != false) {
-            right_target = right_target->right;
-        }
-        right_target = right_target->right;
-        while(player_dead_status[left_target->left->tag] != false) {
-            left_target = left_target->left;
-        }
-        left_target = left_target->left;
-        while(graph_head != NULL) {
-            if(left_target->tag == graph_head->pos) {
-                left_list = graph_head;
-            }
-            else if(right_target->tag == graph_head->pos) {
-                right_list = graph_head;
-            }
-            graph_head = graph_head->next;
-        }
-        if(left_list->favor_point == right_list->favor_point) {
-            if(left_target->hp > right_target->hp)
-                return right_target->tag;
-            else if(left_target->hp < right_target->hp)
-                return left_target->tag;
-            else {
-                int random_decision = (rand() % (2 - 1 + 1)) + 1;
-                if(random_decision == 1)
-                    return left_target->tag;
-                else
-                    return right_target->tag;
-            }
-        }
-        else if(left_list->favor_point > right_list->favor_point)
-            return right_target->tag;
-        else
-            return left_target->tag;
-    }
-    else if(dice_val == SHOOT_2) {
-        if(alive_count == 2 || alive_count == 3) {
-            decision(1, currPlayer, alive_count);
-        }
-        else {
-            while(player_dead_status[right_target->right->tag] != false) {
-                    right_target = right_target->right;
-                }
-            right_target = right_target->right;
-            while(player_dead_status[right_target->right->tag] != false) {
-                right_target = right_target->right;
-            }
-            right_target = right_target->right;
-            while(player_dead_status[left_target->right->tag] != false) {
-                    left_target = left_target->right;
-                }
-            left_target = left_target->right;
-            while(player_dead_status[left_target->right->tag] != false) {
-                left_target = left_target->right;
-            }
-            left_target = left_target->right;
-        }
-        if(left_list->favor_point == right_list->favor_point) {
-            if(left_target->hp > right_target->hp)
-                return right_target->tag;
-            else if(left_target->hp < right_target->hp)
-                return left_target->tag;
-            else {
-                int random_decision = (rand() % (2 - 1 + 1)) + 1;
-                if(random_decision == 1)
-                    return left_target->tag;
-                else
-                    return right_target->tag;
-            }
-        }
-        else if(left_list->favor_point > right_list->favor_point)
-            return right_target->tag;
-        else
-        return left_target->tag;
-    }
-    else if(dice_val == BEER) {
-        if(current->role == RENEGADE) {
-            if(current->hp < (current->hp/2)) {
-                return current->tag;
-            }
-            else if(sheriff->hp < (sheriff->hp/2) && alive_count != 2) {
-                return sheriff->tag;
-            }
-            else if(alive_count == 4) {
-                int random_decision = (rand() % (2 - 1 + 1)) + 1;
-                if(random_decision == 1) {
-                    while(player_dead_status[current->left->tag] != false || current->left == sheriff) {
-                        current = current->left;
-                    }
-                    current = current->left;
-                    return current->tag;
-                }
-                else {
+player *validRightTarget(player *currPlayer)
+{
+	player *assign = currPlayer->right;
+	while(player_dead_status[assign->tag] == true) 
+	{
+		assign = assign->right;
+	}
+	return assign;
+}
+player *validLeftTarget(player *currPlayer)
+{
+	player *assign = currPlayer->left;
+	while(player_dead_status[assign->tag] == true) 
+	{
+		assign = assign->left;
+	}
+	return assign;
+}
 
-                }
-            }
-        }
-    }
+int getBehaviorModifier(player *currPlayer, int dieValue)
+{
+	int be = 0; 
+	//Creates a number based off of role and die type that a random 1d6 checks against. 
+	//Higher values make it less likely that a die will be locked.
+	//0 guarantees a lock in, 7 guarantees a reroll attempt.
+	player *validTargets[4];
+	validTargets[0] = validRightTarget(currPlayer);
+	validTargets[2] = validRightTarget(validRightTarget(currPlayer));
+	validTargets[1] = validLeftTarget(currPlayer);
+	validTargets[3] = validLeftTarget(validLeftTarget(currPlayer));
+	//Creates a list of valid targets.
+	int sheriffTargetable;
+	//Sees if Sheriff is in targeting range. 0 if not, 1 or 2 if in range, respective to distance.
+	int lowestHP = 11;
+	int lowestPlayerTargetable;
+	//Returns the index of the lowest HP target that isn't the sheriff. Used for Renegade Targeting.
+	for(int i = 0; i < 4; i++)
+	{
+		if(validTargets[i]->role == SHERIFF)
+		{
+			sheriffTargetable = (i/2) + 1;
+		}
+		if(validTargets[i]->hp < lowestHP && validTargets[i]->role != SHERIFF)
+		{
+			lowestHP = validTargets[i]->hp;
+			lowestPlayerTargetable = i;
+		}
+	}
+	switch(currPlayer->role)
+	{
+		case SHERIFF:
+		cout << "Sheriff's Resolve"<<endl;
+		//The sheriff will prioritize healing himself. He won't attack targets that have healed him recently.
+		//Will always trigger gatling when available.
+		switch(dieValue)
+		{
+			case BEER:
+			if(currPlayer->hp < currPlayer->maxhp)
+				be = 0;
+			else
+				be = 7;
+			break;
+			case SHOOT_1:
+			be = 4;
+			break;
+			case SHOOT_2:
+			be = 3;
+			break;
+			case GATLING:
+			//Priority
+			be = 0;
+			break;
+		}
+		break;
+		case DEPUTY:
+		cout << "Deputy's Reasoning"<<endl;
+		//Deputies will prioritize healing the sheriff, and themselves if they fall low.
+		//If they have to shoot, the sheriff will never be targeted.
+		switch(dieValue)
+		{
+			case BEER:
+			//Prioritized
+			if(sheriff->hp < sheriff->maxhp || currPlayer->hp < (currPlayer->maxhp / 3))
+				be = 0;
+			else
+			//No Use, may need to check for favored players
+				be = 7;
+			break;
+			case SHOOT_1:
+				be = 4;
+			break;
+			case SHOOT_2:
+				be = 3;
+			break;
+			case GATLING:
+				be = 0;
+			break;
+		}
+		break;
+		case OUTLAW:
+		cout << "Outlaw's Revenge"<<endl;
+		//Outlaws will target the sheriff whenever possible. They will heal themselves when low.
+		switch(dieValue)
+		{
+			case BEER:
+			if(currPlayer->hp < (currPlayer->hp/2))
+				be = 0;
+			else
+				be = 2;
+			break;
+			//Shoot cases need to determine available targets. Outlaws will always lock if the sheriff can be hit.
+			//They will only occasionally lock if the sheriff is not a valid target.
+			case SHOOT_1:
+			if(sheriffTargetable == 1)
+				be = 0;
+			else
+				be = 2;
+			break;
+			case SHOOT_2:
+			if(sheriffTargetable == 2)
+				be = 0;
+			else
+				be = 3;
+			break;
+			//Outlaws play on a team usually larger than the Law's. They will avoid gatling under most circumstances.
+			//They are more likely to use the gatling if they have too many arrows, the sheriff is not a valid target, or they are outnumbered.
+			case GATLING:
+			be = 7;
+			//Check team sized;
+			if(outlaws_count <= deputy_count + 1)
+				be -= 3;
+			//Check if sheriff is not 1 or 2 spaces away.
+			if(sheriffTargetable == 0)
+				be -= 1;
+			if(currPlayer->arrowsHeld > 3)
+				be -= 3;
+			break;
+		}
+		break;
+		case RENEGADE:
+		cout << "Renegade's Rage"<<endl;
+		//Renegades prioritize healing themselves. They will start healing the sheriff if he falls below half health.
+		//Will always trigger gatling when available. Will always attack the lowest hp target on his target list.
+		switch(dieValue)
+		{
+			case BEER:
+			//Prioritized
+			if(currPlayer->hp < currPlayer->maxhp)
+				be = 0;
+			else if(sheriff->hp < (sheriff->maxhp/2)) //AND there are less dead Outlaws than Starting.
+				//Will Heal Sheriff to keep the game going. 
+				be = 0;
+			else
+				be = 7;
+			break;
+			case SHOOT_1:
+			//Check for lowest target, still a likely lockin. Outprioritized by gatling.
+			if(lowestPlayerTargetable / 2 == 0)
+				be = 0;
+			else
+				be = 4;
+			break;
+			case SHOOT_2:
+			//Check for lowest target, still a likely lockin
+			if(lowestPlayerTargetable / 2 == 1)
+				be = 0;
+			else
+				be = 4;
+			break;
+			case GATLING:
+			//Prioritized
+			be = 0;
+			break;
+		}
+		break;
+	}
+	if(dieValue == DYNAMITE)
+		be = 7;
+	if(dieValue == ARROW)
+		be = 0;
+	//Arrows have no utility and will always be rerolled.
+	//Dynamite forces the die to lock.
+	return be;
+}
+
+player *targeting(player *currPlayer, int dieValue)
+{
+	int hp = currPlayer->hp;
+	int maxhp = currPlayer->maxhp;
+	player *validTargetLeft = validLeftTarget(currPlayer);
+	player *validTargetRight = validRightTarget(currPlayer);
+	int favorLeft;
+	int favorRight;
+	switch(dieValue)
+	{
+		case BEER:
+		{
+			switch(currPlayer->role)
+			{
+				case SHERIFF:
+				{
+					if(hp < maxhp)
+						return currPlayer;
+					//Check for favored player.
+				}
+				break;
+				case DEPUTY:
+				{
+					if(sheriff->hp < sheriff->maxhp / 3)
+						return sheriff;
+					if(hp < (maxhp / 2))
+						return currPlayer;
+					if(sheriff->hp < sheriff->maxhp)
+						return sheriff;
+				}
+				break;
+				case OUTLAW:
+				{
+					if(hp < (maxhp/3))
+						return currPlayer;
+					//Check for favored player.
+					if(hp < maxhp)
+						return currPlayer;
+					return currPlayer;
+				}
+				break;
+				case RENEGADE:
+				{
+					if(outlaws_count == 0 || currPlayer->hp < currPlayer->maxhp/3)
+						return currPlayer;
+					if(deputy_count + 1 < outlaws_count && sheriff->hp < (sheriff->maxhp / 2))
+						return sheriff;
+					//Renegades cannot have favor
+					return currPlayer;
+				}
+				break;
+			}
+		}
+		case SHOOT_1:
+		{
+			switch(currPlayer->role)
+			{
+				case SHERIFF:
+				{
+					
+				}
+				break;
+				case DEPUTY:
+				{
+					
+				}
+				break;
+				case OUTLAW:
+				{
+					
+				}
+				break;
+				case RENEGADE:
+				{
+					
+				}
+				break;
+			}
+		}
+		case SHOOT_2:
+		{
+			switch(currPlayer->role)
+			{
+				case SHERIFF:
+				{
+					
+				}
+				break;
+				case DEPUTY:
+				{
+					
+				}
+				break;
+				case OUTLAW:
+				{
+					
+				}
+				break;
+				case RENEGADE:
+				{
+					
+				}
+				break;
+			}
+		}
+	}
 }
