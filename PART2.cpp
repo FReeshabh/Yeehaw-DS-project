@@ -281,10 +281,13 @@ void sixFeetUnder(player *deceased) {
 		case 0: cout << " sheriff.";
 		break;
 		case 1: cout << " deputy.";
+        deputy_count--;
 		break;
 		case 2: cout << "n outlaw.";
+        outlaws_count--;
 		break;
 		case 3: cout << " renegade.";
+        renegades_count--;
 		break;
 	}
     cout << endl;
