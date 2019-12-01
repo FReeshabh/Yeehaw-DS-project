@@ -898,7 +898,7 @@ void generate_graph() {
                 if(current_graph->pos == current->tag) {
                     current_graph->favor_point += 50;
                 }
-                else {
+                else if(deputy_count == 0){
                     current_graph->favor_point -= 50;
                 }
                 current_graph = current_graph->next;
@@ -913,7 +913,7 @@ void generate_graph() {
                 else if(role_reveal(index) == 0) {
                     current_graph->favor_point += 50;
                 }
-                else {
+                else if(deputy_count == 1) {
                     current_graph->favor_point -= 50;
                 }
                 current_graph = current_graph->next;
