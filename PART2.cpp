@@ -505,7 +505,7 @@ player *createPlayer(int position) {
     newPlayer->maxhp = 9;
     newPlayer->arrowsHeld = 0;
     newPlayer->tag = position;
-    newPlayer->player_name;
+    //newPlayer->player_name;
     newPlayer->left = NULL;
     newPlayer->right = NULL;
     //name_assign(newPlayer);
@@ -844,14 +844,14 @@ void create_node(int vertex, int position) {
     if(player_graph[vertex]->head == NULL) {
         newNode = (node*)malloc(sizeof(node));
         newNode->pos = position;
-        newNode->favor_point = 1;
+        newNode->favor_point = 50;
         newNode->next = NULL;
         player_graph[vertex]->head = newNode;
     }
     else {
         newNode = (node*)malloc(sizeof(node));
         newNode->pos = position;
-        newNode->favor_point = 1;
+        newNode->favor_point = 50;
         newNode->next = NULL;
         current = player_graph[vertex]->head;
         while(current->next != NULL) {
@@ -896,10 +896,10 @@ void generate_graph() {
         case SHERIFF:
             while(current_graph != NULL) {
                 if(current_graph->pos == current->tag) {
-                    current_graph->favor_point += 1;
+                    current_graph->favor_point += 50;
                 }
                 else {
-                    current_graph->favor_point -= 1;
+                    current_graph->favor_point -= 50;
                 }
                 current_graph = current_graph->next;
             }
@@ -908,13 +908,13 @@ void generate_graph() {
             index = 0;
             while(current_graph != NULL) {
                 if(current_graph->pos == current->tag) {
-                    current_graph->favor_point = 1;
+                    current_graph->favor_point += 50;
                 }
                 else if(role_reveal(index) == 0) {
-                    current_graph->favor_point += 1;
+                    current_graph->favor_point += 50;
                 }
                 else {
-                    current_graph->favor_point -= 1;
+                    current_graph->favor_point -= 50;
                 }
                 current_graph = current_graph->next;
                 index++;
@@ -924,10 +924,10 @@ void generate_graph() {
             index = 0;
             while(current_graph != NULL) {
                 if(current_graph->pos == current->tag) {
-                    current_graph->favor_point += 1;
+                    current_graph->favor_point += 50;
                 }
                 else if(role_reveal(index) == 0) {
-                    current_graph->favor_point -= 1;
+                    current_graph->favor_point -= 50;
                 }
                 current_graph = current_graph->next;
                 index++;
@@ -937,7 +937,7 @@ void generate_graph() {
             index = 0;
             while(current_graph != NULL) {
                 if(current_graph->pos == current->tag) {
-                    current_graph->favor_point += 1;
+                    current_graph->favor_point += 50;
                 }
                 current_graph = current_graph->next;
                 index++;
