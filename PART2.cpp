@@ -2,7 +2,7 @@
 //Tyler Nee, Vincent Hew, Rishabh Tewari
 //game working correctly except naming issue
 //using vincent_test part 1 version 1.7.8
-//part 2 version 1.7.9
+//part 2 version 1.7.10
 
 #include <iostream>
 #include <time.h>
@@ -109,11 +109,11 @@ int main() {
     display(first_player);
     //finished generating players in the game
     //game start
-    cout << endl << "****Game Start****" << endl;
+    cout << endl << ">>>>Game Start<<<<" << endl;
     current = first_player;
     /*
     while(winCondition == GAME_CONTINUE) {
-        cout << "****Round: " << round_count << endl;
+        cout << ">>>>Round: " << round_count << endl;
         for(int i = 0; i < initial_playerCount; i++) {
             resolveDice(current, 0, initial_playerCount);
             current = current->left;
@@ -124,7 +124,7 @@ int main() {
                 return 0;
             }
         }
-        cout << "****End of round: " << round_count << endl;
+        cout << ">>>>End of round: " << round_count << endl;
         cout << endl;
         round_count++;
     }
@@ -147,7 +147,7 @@ void resolveArrows(player *currPlayer) {
 	player *current = currPlayer;
 	do {
 		current->hp -= current->arrowsHeld;
-		cout << "Player " << current->tag << " sustained " << current->arrowsHeld << " damage " <<endl;
+		cout << ">>Player " << current->tag << " sustained " << current->arrowsHeld << " damage " <<endl;
          	arrowsRemaining += current->arrowsHeld;
 		 if(current->hp <= 0) {
 			 sixFeetUnder(current);
@@ -171,11 +171,11 @@ void giveBeer(player *currPlayer, int total_playerCount) {
         recipient = recipient->right;
     }
     if(recipient->hp != recipient->maxhp) {
-		cout << "Recipient " << recipient->tag << " was healed" << endl;
+		cout << ">>Recipient " << recipient->tag << " was healed" << endl;
         recipient->hp++;
 	}
 	else {
-		cout << "Recipient " << recipient->tag << " already maxed out" << endl;
+		cout << ">>Recipient " << recipient->tag << " already maxed out" << endl;
 	}
 }
 
@@ -275,8 +275,8 @@ void sixFeetUnder(player *deceased) {
 	if(deceased->hp < 0) {
 		deceased->hp = 0;
 	}
-	cout << "**Player " << deceased->tag << " has died." << endl;
-	cout << "**They were a";
+	cout << ">>Player " << deceased->tag << " has died." << endl;
+	cout << ">>They were a";
 	switch(deceased->role) {
 		case 0: cout << " sheriff.";
 		break;
@@ -446,14 +446,14 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
                 current = current->right;
             }
             target = current->right;
-            cout << "Player "<< target->tag << " got shot." << endl;
+            cout << ">>Player "<< target->tag << " got shot." << endl;
         }
         else {
             while(player_dead_status[current->left->tag] != false) {
                 current = current->left;
             }
             target = current->left;
-            cout << "Player "<< target->tag << " got shot." << endl;
+            cout << ">>Player "<< target->tag << " got shot." << endl;
         }
 	}
     else if(diceVal == 2) {
@@ -471,7 +471,7 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
                     current = current->right;
                 }
                 target = current->right;
-                cout << "Player "<< target->tag << " got shot." << endl;
+                cout << ">>Player "<< target->tag << " got shot." << endl;
             }
             else {
                 while(player_dead_status[current->left->tag] != false) {
@@ -482,7 +482,7 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
                     current = current->left;
                 }
                 target = current->left;
-                cout << "Player "<< target->tag << " got shot." << endl;
+                cout << ">>Player "<< target->tag << " got shot." << endl;
             }
         }
     }
@@ -651,12 +651,13 @@ void assign_role(player *current_player, int total_playerCount) {
 void display(player *first_player) {
     player *current;
     current = first_player;
-    cout << "***Current Player List Status***" << endl;
+    cout << ">>>Current Player List Status<<<" << endl;
     do {
         cout << "Player " << current->tag << " Role: " << current->role;
         cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
         current = current->left;
     }while(current->tag != 0);
+    cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl;
 }
 
 // NAME : initializeDice
