@@ -1046,3 +1046,142 @@ player *targeting(player *currPlayer, int dieValue)
 		}
 	}
 }
+
+//update graph
+//change favor point to the actor based on what action actor did to the target
+void updateFavor(player *actor, player *target, int option) {
+    //option 0 = heal, 1 = shoot
+    player *current = actor->left;
+    if(actor == target) {
+        cout << "**Error: updateFavor actor == target" << endl;
+        return;
+    }
+    if(option == 0) {
+        switch (target->role)
+        {
+        case SHERIFF:
+            while(current != actor) {
+                switch (current->role)
+                {
+                case SHERIFF:
+                    if(deputy_count >= 1) {
+                        if(favorGraph[current->tag][actor->tag] != 100) {
+                            favorGraph[current->tag][actor->tag] += 12;
+                            if(favorGraph[current->tag][actor->tag] > 99)
+                                favorGraph[current->tag][actor->tag] = 99;
+                        }
+                        
+                    }
+                    break;
+                case DEPUTY:
+                    if(deputy_count > 1) {
+                        if(favorGraph[current->tag][actor->tag] != 100) {
+                            favorGraph[current->tag][actor->tag] += 12;
+                            if(favorGraph[current->tag][actor->tag] > 99)
+                                favorGraph[current->tag][actor->tag] = 99;
+                        }
+                    }
+                    break;
+                case OUTLAW:
+                    if(favorGraph[current->tag][actor->tag] != 0) {
+                        favorGraph[current->tag][actor->tag] -= 12;
+                        if(favorGraph[current->tag][actor->tag] < 1) {
+                            favorGraph[current->tag][actor->tag] = 1;
+                        }
+                    }
+                    
+                    break;
+                case RENEGADE:
+                    //Reegade dont change favor to the actor
+                    break;
+                }
+                current = current->left;
+            }
+            break;
+        case DEPUTY:
+            if(favorGraph[current->tag][actor->tag] != 100) {
+                favorGraph[target->tag][actor->tag] += 12;
+                if(favorGraph[target->tag][actor->tag] > 99) {
+                    favorGraph[target->tag][actor->tag] = 99;
+                }
+            }
+            break;
+        case OUTLAW:
+            if(favorGraph[current->tag][actor->tag] != 100) {
+                favorGraph[target->tag][actor->tag] += 12;
+                if(favorGraph[target->tag][actor->tag] > 99) {
+                    favorGraph[target->tag][actor->tag] = 99;
+                }
+            }
+            break;
+        case RENEGADE:
+            //renegade dont change
+            break;
+        default:
+            cout << "**Error: updateFavor option 0 switch default" << endl;
+            break;
+        }
+    }
+    else if(option == 1) {
+        switch (target->role)
+        {
+        case SHERIFF:
+            while(current != actor) {
+                switch (current->role)
+                {
+                case SHERIFF:
+                    if(favorGraph[current->tag][actor->tag] != 0) {
+                        favorGraph[current->tag][actor->tag] -= 15;
+                        if(favorGraph[current->tag][actor->tag] < 1) {
+                            favorGraph[current->tag][actor->tag] = 1;
+                        }
+                    }
+                    break;
+                case DEPUTY:
+                    if(favorGraph[current->tag][actor->tag] != 0) {
+                        favorGraph[current->tag][actor->tag] -= 15;
+                        if(favorGraph[current->tag][actor->tag] < 1) {
+                            favorGraph[current->tag][actor->tag] = 1;
+                        }
+                    }
+                    break;
+                case OUTLAW:
+                    if (favorGraph[current->tag][actor->tag] != 100) {
+                        favorGraph[current->tag][actor->tag] += 15;
+                        if(favorGraph[current->tag][actor->tag] > 99) {
+                            favorGraph[current->tag][actor->tag] = 99;
+                        }
+                    }
+                    break;
+                case RENEGADE:
+                    //renegage dont change favor
+                    break;
+                }
+                current = current->left;
+            }
+            break;
+        case DEPUTY:
+            if(favorGraph[current->tag][actor->tag] != 0) {
+                favorGraph[target->tag][actor->tag] -= 15;
+                if(favorGraph[target->tag][actor->tag] < 1) {
+                    favorGraph[target->tag][actor->tag] = 1;
+                }
+            }
+            break;
+        case OUTLAW:
+            if(favorGraph[current->tag][actor->tag] != 0) {
+                favorGraph[target->tag][actor->tag] -= 15;
+                if(favorGraph[target->tag][actor->tag] < 1) {
+                    favorGraph[target->tag][actor->tag] = 1;
+                }
+            }
+            break;
+        case RENEGADE:
+            //renegade dont change favor point
+            break;
+        default:
+            cout << "**Error: updateFavor option 1 switch default" << endl;
+            break;
+        }
+    }
+}

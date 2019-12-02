@@ -43,7 +43,7 @@ typedef struct player{
 player *createPlayer(int position);
 player *generatePlayers(int playerCount);
 void assign_role(player *current_player, int total_playerCount);
-void name_assign(player *currPlayer);
+string name_assign(player *currPlayer);
 //functions for roll and resolve the dices
 void initializeDice(die *dice[]);
 void rollDice(player *currPlayer);
@@ -73,13 +73,13 @@ player *sheriff;                        //pointer always point to sheriff
 int arrowsRemaining = 9;                //the number of remaining arrow tokens
 die *dice[MAX];                         //keep the dice value
 int winCondition = GAME_CONTINUE;       //win condition = 4
-
+int initial_playerCount = 4;
 
 int main() {
     srand(time(0));
 	initializeDice(dice);
     int round_count = 1;
-    int initial_playerCount = (rand() % (8 - 4 + 1)) + 4;
+    initial_playerCount = (rand() % (8 - 4 + 1)) + 4;
     player *current;
     cout << "Player initial amount: " << initial_playerCount << endl;
     first_player = generatePlayers(initial_playerCount);
@@ -469,15 +469,16 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
 // PURPOSE: create new player node
 player *createPlayer(int position) {
     player *newPlayer = (player*)malloc(sizeof(player));
-    int initial_playerCout = (rand() % (8 - 4 + 1)) + 4;
     newPlayer->hp = 9;
     newPlayer->maxhp = 9;
     newPlayer->arrowsHeld = 0;
     newPlayer->tag = position;
-    newPlayer->player_name;
     newPlayer->left = NULL;
     newPlayer->right = NULL;
-    //name_assign(newPlayer);
+    string naming = name_assign(newPlayer);
+    //cout << "got name:" << naming << endl;
+    //newPlayer->player_name = "test";
+    // cout << "assigned: " << newPlayer->player_name << endl;
     return newPlayer;
 }
 
@@ -485,41 +486,15 @@ player *createPlayer(int position) {
 // INPUT PARAMETERS: currPlayer
 // OUTPUT: none
 // PURPOSE: give random player name to each player
-void name_assign(player *currPlayer) {
-    cout << "get in" << endl;
+string name_assign(player *currPlayer) {
     string name_list[8] = {"Vincent","Tyler","Rishabh","John","Rosa","Monica","Lisa","Albert"};
     int index_namelist = (rand() % (7 - 0 + 1)) + 0;
-    cout << "nameList available check: " << endl;
-    for(int i = 0; i < 8; i++) {
-        cout << "list pos (" << i << ") status: ";
-        if (name_check[index_namelist] != false) {
-            cout << "Used" << endl;
-        }
-        else if(name_check[index_namelist] == false) {
-            cout << "Available" << endl;
-        }
-    }
     while(name_check[index_namelist] != false) {
         index_namelist = (rand() % (7 - 0 + 1)) + 0;
         cout << "finding another" << endl;
     }
     name_check[index_namelist] = true;
-    cout << "**New status: " << endl;
-    cout << "list pos (" << index_namelist << ") status: ";
-    if (name_check[index_namelist] != false) {
-            cout << "Used" << endl;
-    }
-    else if(name_check[index_namelist] == false) {
-        cout << "Available" << endl;
-    }
-    cout << "assigning the name: " << name_list[index_namelist] << endl;
-    cout << "target spot: " << currPlayer->player_name << endl;
-    currPlayer->player_name = name_list[index_namelist];
-    cout << "Assigned for player tag: ";
-    cout << currPlayer->tag << endl;
-    cout << " as ";
-    cout << currPlayer->player_name << endl;
-    cout << "leaving" << endl;
+    return name_list[index_namelist];
 }
 
 // NAME : generatePlayers
@@ -528,15 +503,23 @@ void name_assign(player *currPlayer) {
 // PURPOSE: generate players in the game
 player *generatePlayers(int playerCount) {
     player *new_player, *prev_player;
+
+    //cout << "Creating root player:" << endl;
+
     first_player = createPlayer(0);
     assign_role(first_player, playerCount);
     prev_player = first_player;
     for(int i = 1; i < playerCount; i++) {
+
+        //cout << "*** Creating player:*** " << i << endl;
+
         new_player = createPlayer(i);
         assign_role(new_player, playerCount);
         new_player->right = prev_player;
         prev_player->left = new_player;
         prev_player = new_player;
+
+        //cout << "*** end of creating player *** " << i << endl;
     }
     prev_player->left = first_player;
     first_player->right = prev_player;
@@ -621,11 +604,13 @@ void display(player *first_player) {
     player *current;
     current = first_player;
     cout << "***Current Player List Status***" << endl;
+    int count = 0;
     do {
         cout << "Player " << current->tag << " Role: " << current->role;
         cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
         current = current->left;
-    }while(current->tag != 0);
+        count = count + 1;
+    }while(current->tag != 0 || count < initial_playerCount);
 }
 
 // NAME : initializeDice
