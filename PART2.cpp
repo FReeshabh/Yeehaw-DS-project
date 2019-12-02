@@ -101,7 +101,7 @@ int main() {
     cout << endl << ">>>>Game Start<<<<" << endl;
     current = first_player;
     
-    while(winCondition == GAME_CONTINUE) {
+    /*while(winCondition == GAME_CONTINUE) {
         cout << ">>>>Round: " << round_count << endl;
         for(int i = 0; i < initial_playerCount; i++) {
             resolveDice(current, 0, initial_playerCount);
@@ -116,11 +116,13 @@ int main() {
         cout << ">>>>End of round: " << round_count << endl;
         cout << endl;
         round_count++;
-    }
+    }*/
 
     //end of game
     //graph testing
     cout << endl << ">>ERROR: graph testing"<<endl;
+	generate_graph();
+	print_graph();
 	return 0;
 }
 
@@ -685,21 +687,6 @@ int role_reveal(int position) {
     return current->role;
 }
 
-// NAME : generate_graph
-// INPUT PARAMETERS: none
-// OUTPUT: none
-// PURPOSE: generate the graph
-void generate_graph() {
-    player *current = first_player;
-    int index1;
-	int index2;
-}
-
-//graph testing function
-void print_graph() {
-
-}
-
 player *validRightTarget(player *currPlayer)
 {
 	player *assign = currPlayer->right;
@@ -717,6 +704,72 @@ player *validLeftTarget(player *currPlayer)
 		assign = assign->left;
 	}
 	return assign;
+}
+
+// NAME : generate_graph
+// INPUT PARAMETERS: none
+// OUTPUT: none
+// PURPOSE: generate the graph
+void generate_graph() {
+    player *current = first_player;
+	player *target = first_player;
+	for(int i = 0; i < initial_playerCount; i++)
+	{
+		for(int j = 0; j < initial_playerCount; j++)
+		{
+			switch(current->role)
+			{
+				case SHERIFF:
+				{
+					if(deputy_count == 0)
+						favorGraph[i][j] = 0;
+					else
+						favorGraph[i][j] = 50;
+				}
+				break;
+				case DEPUTY:
+				{
+					if(deputy_count < 2)
+						favorGraph[i][j] = 0;
+					if(deputy_count == 2)
+						favorGraph[i][j] = 50;
+					if(target->role == SHERIFF)
+						favorGraph[i][j] = 100;
+				}
+				break;
+				case OUTLAW:
+				{
+					if(target->role == SHERIFF)
+						favorGraph[i][j] = 0;
+					else
+						favorGraph[i][j] = 50;
+				}
+				break;
+				case RENEGADE:
+				{
+					favorGraph[i][j] = 0;
+				}
+				break;
+			}
+			if(current->tag == target->tag)
+				favorGraph[i][j] = 100;
+			target = target->left;
+		}
+		current = current->left;
+	}
+}
+
+//graph testing function
+void print_graph() 
+{
+	for(int i = 0; i < initial_playerCount; i++)
+	{
+		for(int j = 0; j < initial_playerCount; j++)
+		{
+			cout << favorGraph[i][j] << "\t";
+		}
+		cout << endl;
+	}
 }
 
 int getBehaviorModifier(player *currPlayer, int dieValue)
