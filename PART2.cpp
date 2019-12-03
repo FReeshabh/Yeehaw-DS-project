@@ -705,6 +705,62 @@ player *validLeftTarget(player *currPlayer)
 	}
 	return assign;
 }
+//Use for Shoot 1
+player *findNemesis1(player *currPlayer)
+{
+	int favorLeft = favorGraph[currPlayer->tag][validLeftTarget(currPlayer)->tag];
+	int favorRight = favorGraph[currPlayer->tag][validRightTarget(currPlayer)->tag];
+	if(favorLeft < favorRight)
+		return validLeftTarget(currPlayer);
+	else
+		return validRightTarget(currPlayer);
+}
+//Use for Shoot 2
+player *findNemesis2(player *currPlayer)
+{
+	int favorLeft = favorGraph[currPlayer->tag][validLeftTarget(validLeftTarget(currPlayer))->tag];
+	int favorRight = favorGraph[currPlayer->tag][validRightTarget(validRightTarget(currPlayer))->tag];
+	if(favorLeft < favorRight)
+		return validLeftTarget(validLeftTarget(currPlayer));
+	else
+		return validRightTarget(validRightTarget(currPlayer));
+}
+player *findLowestAlly(player *currPlayer)
+{
+	//Check players with favor greater than 65.
+	player *allies[4];
+	player *check = first_player;
+	int index = 0;
+	for(int i = 0; i < initial_playerCount; i++)
+	{
+		if(favorGraph[currPlayer->tag][i] > 65 && currPlayer->tag != i)
+		{
+			allies[index] = check;
+		}
+		check = check->left;
+	}
+	//Find the lowest player in that group. //Sheriff is prioritized-
+	//-by calculating their health as half its current value.
+	//When Outlaws or Renegades call this function,
+	//their favor for the sheriff will always be zero,
+	//and sheriff will not be passed to the allies array.
+	int minHP = 11;
+	int curMin;
+	for(int i = 0; i < 4; i++)
+	{
+		curMin = allies[i]->hp;
+		if(allies[i]->role == SHERIFF)
+			curMin = curMin/2;
+		if(curMin < minHP)
+		{
+			minHP = curMin;
+			//Check is repurposed to hold the lowest.
+			check = allies[i];
+		}
+	}
+	//Return them as a target.
+	return check;
+}
 
 // NAME : generate_graph
 // INPUT PARAMETERS: none
@@ -816,14 +872,14 @@ int getBehaviorModifier(player *currPlayer, int dieValue)
 				be = 7;
 			break;
 			case SHOOT_1:
-			be = 4;
+				be = 3;
 			break;
 			case SHOOT_2:
-			be = 3;
+				be = 3;
 			break;
 			case GATLING:
 			//Priority
-			be = 0;
+				be = 0;
 			break;
 		}
 		break;
@@ -842,7 +898,7 @@ int getBehaviorModifier(player *currPlayer, int dieValue)
 				be = 7;
 			break;
 			case SHOOT_1:
-				be = 4;
+				be = 3;
 			break;
 			case SHOOT_2:
 				be = 3;
@@ -924,7 +980,7 @@ int getBehaviorModifier(player *currPlayer, int dieValue)
 			break;
 			case GATLING:
 			//Prioritized
-			be = 0;
+				be = 0;
 			break;
 		}
 		break;
@@ -942,10 +998,6 @@ player *targeting(player *currPlayer, int dieValue)
 {
 	int hp = currPlayer->hp;
 	int maxhp = currPlayer->maxhp;
-	player *validTargetLeft = validLeftTarget(currPlayer);
-	player *validTargetRight = validRightTarget(currPlayer);
-	int favorLeft;
-	int favorRight;
 	switch(dieValue)
 	{
 		case BEER:
@@ -956,27 +1008,22 @@ player *targeting(player *currPlayer, int dieValue)
 				{
 					if(hp < maxhp)
 						return currPlayer;
-					//Check for favored player.
+					return findLowestAlly(currPlayer);
 				}
 				break;
 				case DEPUTY:
 				{
-					if(sheriff->hp < sheriff->maxhp / 3)
-						return sheriff;
-					if(hp < (maxhp / 2))
+					if(hp < maxhp/2)
 						return currPlayer;
-					if(sheriff->hp < sheriff->maxhp)
-						return sheriff;
+					return findLowestAlly(currPlayer);
 				}
 				break;
 				case OUTLAW:
 				{
-					if(hp < (maxhp/3))
+					if(hp < (maxhp/2))
 						return currPlayer;
 					//Check for favored player.
-					if(hp < maxhp)
-						return currPlayer;
-					return currPlayer;
+					return findLowestAlly(currPlayer);
 				}
 				break;
 				case RENEGADE:
@@ -985,7 +1032,7 @@ player *targeting(player *currPlayer, int dieValue)
 						return currPlayer;
 					if(deputy_count + 1 < outlaws_count && sheriff->hp < (sheriff->maxhp / 2))
 						return sheriff;
-					//Renegades cannot have favor
+					//Renegades cannot have favor, will always heal self if no alternative present.
 					return currPlayer;
 				}
 				break;
@@ -998,22 +1045,37 @@ player *targeting(player *currPlayer, int dieValue)
 			{
 				case SHERIFF:
 				{
-					
+					//Shoot your least favorite player in range.
+					return findNemesis1(currPlayer);
 				}
 				break;
 				case DEPUTY:
 				{
-					
+					//Shoot your least favorite player in range.
+					return findNemesis1(currPlayer);
 				}
 				break;
 				case OUTLAW:
 				{
-					
+					//Shoot your least favorite player in range.
+					return findNemesis1(currPlayer);
 				}
 				break;
 				case RENEGADE:
 				{
-					
+					//Avoid shooting the sheriff while outlaws are still in the game.
+					if(validLeftTarget(currPlayer)->tag == sheriff->tag && outlaws_count > 0)
+						return validRightTarget(currPlayer);
+					if(validRightTarget(currPlayer)->tag == sheriff->tag && outlaws_count > 0)
+						return validLeftTarget(currPlayer);
+					else
+					{
+						//Find lowest HP target available.
+						if(validLeftTarget(currPlayer)->hp > validRightTarget(currPlayer)->hp)
+							return validRightTarget(currPlayer);
+						else
+							return validLeftTarget(currPlayer);
+					}
 				}
 				break;
 			}
@@ -1024,164 +1086,42 @@ player *targeting(player *currPlayer, int dieValue)
 			{
 				case SHERIFF:
 				{
-					
+					//Shoot your least favorite player in range.
+					return findNemesis2(currPlayer);
 				}
 				break;
 				case DEPUTY:
 				{
-					
+					//Shoot your least favorite player in range.
+					return findNemesis2(currPlayer);
 				}
 				break;
 				case OUTLAW:
 				{
-					
+					//Shoot your least favorite player in range.
+					return findNemesis2(currPlayer);
 				}
-				break;
+				break; 
 				case RENEGADE:
 				{
-					
+					//Avoid shooting the sheriff while outlaws are still in the game. Range 2
+					if(validLeftTarget(validLeftTarget(currPlayer))->tag == sheriff->tag && outlaws_count > 0)
+						return validRightTarget(validRightTarget(currPlayer));
+					if(validRightTarget(validRightTarget(currPlayer))->tag == sheriff->tag && outlaws_count > 0)
+						return validLeftTarget(validLeftTarget(currPlayer));
+					else
+					{
+						//Find lowest HP target available. Range 2
+						if(validLeftTarget(validLeftTarget(currPlayer))->hp > validRightTarget(validRightTarget(currPlayer))->hp)
+							return validRightTarget(currPlayer);
+						else
+							return validLeftTarget(currPlayer);
+					}
 				}
 				break;
 			}
 		}
 	}
-}
-
-//update graph
-//change favor point to the actor based on what action actor did to the target
-void updateFavor(player *actor, player *target, int option) {
-    //option 0 = heal, 1 = shoot
-    player *current = actor->left;
-    if(actor == target) {
-        cout << "**Error: updateFavor actor == target" << endl;
-        return;
-    }
-    if(option == 0) {
-        switch (target->role)
-        {
-        case SHERIFF:
-            while(current != actor) {
-                switch (current->role)
-                {
-                case SHERIFF:
-                    if(deputy_count >= 1) {
-                        if(favorGraph[current->tag][actor->tag] != 100) {
-                            favorGraph[current->tag][actor->tag] += 12;
-                            if(favorGraph[current->tag][actor->tag] > 99)
-                                favorGraph[current->tag][actor->tag] = 99;
-                        }
-                        
-                    }
-                    break;
-                case DEPUTY:
-                    if(deputy_count > 1) {
-                        if(favorGraph[current->tag][actor->tag] != 100) {
-                            favorGraph[current->tag][actor->tag] += 12;
-                            if(favorGraph[current->tag][actor->tag] > 99)
-                                favorGraph[current->tag][actor->tag] = 99;
-                        }
-                    }
-                    break;
-                case OUTLAW:
-                    if(favorGraph[current->tag][actor->tag] != 0) {
-                        favorGraph[current->tag][actor->tag] -= 12;
-                        if(favorGraph[current->tag][actor->tag] < 1) {
-                            favorGraph[current->tag][actor->tag] = 1;
-                        }
-                    }
-                    
-                    break;
-                case RENEGADE:
-                    //Reegade dont change favor to the actor
-                    break;
-                }
-                current = current->left;
-            }
-            break;
-        case DEPUTY:
-            if(favorGraph[current->tag][actor->tag] != 100) {
-                favorGraph[target->tag][actor->tag] += 12;
-                if(favorGraph[target->tag][actor->tag] > 99) {
-                    favorGraph[target->tag][actor->tag] = 99;
-                }
-            }
-            break;
-        case OUTLAW:
-            if(favorGraph[current->tag][actor->tag] != 100) {
-                favorGraph[target->tag][actor->tag] += 12;
-                if(favorGraph[target->tag][actor->tag] > 99) {
-                    favorGraph[target->tag][actor->tag] = 99;
-                }
-            }
-            break;
-        case RENEGADE:
-            //renegade dont change
-            break;
-        default:
-            cout << "**Error: updateFavor option 0 switch default" << endl;
-            break;
-        }
-    }
-    else if(option == 1) {
-        switch (target->role)
-        {
-        case SHERIFF:
-            while(current != actor) {
-                switch (current->role)
-                {
-                case SHERIFF:
-                    if(favorGraph[current->tag][actor->tag] != 0) {
-                        favorGraph[current->tag][actor->tag] -= 15;
-                        if(favorGraph[current->tag][actor->tag] < 1) {
-                            favorGraph[current->tag][actor->tag] = 1;
-                        }
-                    }
-                    break;
-                case DEPUTY:
-                    if(favorGraph[current->tag][actor->tag] != 0) {
-                        favorGraph[current->tag][actor->tag] -= 15;
-                        if(favorGraph[current->tag][actor->tag] < 1) {
-                            favorGraph[current->tag][actor->tag] = 1;
-                        }
-                    }
-                    break;
-                case OUTLAW:
-                    if (favorGraph[current->tag][actor->tag] != 100) {
-                        favorGraph[current->tag][actor->tag] += 15;
-                        if(favorGraph[current->tag][actor->tag] > 99) {
-                            favorGraph[current->tag][actor->tag] = 99;
-                        }
-                    }
-                    break;
-                case RENEGADE:
-                    //renegage dont change favor
-                    break;
-                }
-                current = current->left;
-            }
-            break;
-        case DEPUTY:
-            if(favorGraph[current->tag][actor->tag] != 0) {
-                favorGraph[target->tag][actor->tag] -= 15;
-                if(favorGraph[target->tag][actor->tag] < 1) {
-                    favorGraph[target->tag][actor->tag] = 1;
-                }
-            }
-            break;
-        case OUTLAW:
-            if(favorGraph[current->tag][actor->tag] != 0) {
-                favorGraph[target->tag][actor->tag] -= 15;
-                if(favorGraph[target->tag][actor->tag] < 1) {
-                    favorGraph[target->tag][actor->tag] = 1;
-                }
-            }
-            break;
-        case RENEGADE:
-            //renegade dont change favor point
-            break;
-        default:
-            cout << "**Error: updateFavor option 1 switch default" << endl;
-            break;
-        }
-    }
+	cout << "ERROR: Fallout of targeting function " << endl;
+	return NULL;
 }
