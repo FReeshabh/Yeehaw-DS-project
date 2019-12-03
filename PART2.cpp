@@ -324,8 +324,8 @@ void resolveDice(player *currPlayer, int reroll_count, int total_playerCount) {
     bool reroll_record = false;
     rollDice(currPlayer);
     for(int i = 0; i < MAX; i++) {
-        reroll_option = (rand() % 2) + 1;
-        if(reroll_count < 2 && dice[i]->val != DYNAMITE && reroll_option < 1) {
+        reroll_option = (rand() % 6) + 1;
+        if(reroll_count < 2 && dice[i]->val != DYNAMITE && reroll_option < getBehaviorModifier(currPlayer, dice[i]->val)) {
             if(dice[i]->val == ARROW) {
                 currPlayer->arrowsHeld++;
                 arrowsRemaining--;
