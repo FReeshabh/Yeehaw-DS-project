@@ -103,14 +103,14 @@ int main() {
     player *current;
     cout << "Player initial amount: " << initial_playerCount << endl;
     first_player = generatePlayers(initial_playerCount);
+	generate_graph();
     display(first_player);
     //finished generating players in the game
     //game start
     cout << endl << ">>>>Game Start<<<<" << endl;
     current = first_player;
-    
-    
-    /*while(winCondition == GAME_CONTINUE) {
+	
+   while(winCondition == GAME_CONTINUE) {
         cout << ">>>>Round: " << round_count << endl;
         for(int i = 0; i < initial_playerCount; i++) {
             resolveDice(current, 0, initial_playerCount);
@@ -125,17 +125,22 @@ int main() {
         cout << ">>>>End of round: " << round_count << endl;
         cout << endl;
         round_count++;
-    }*/
+    }
 
     //end of game
     //graph testing
-    cout << endl << ">>ERROR: graph testing"<<endl;
-	generate_graph();
-	print_graph();
+    //cout << endl << ">>ERROR: graph testing"<<endl;
+	/*print_graph();
     cout << endl;
     cout << endl;
     updateFavor(first_player, sheriff, 1);
-    print_graph();
+    print_graph();*/
+	
+	//Targeting Testing:
+	/*updateFavor(first_player, first_player->left, 1);
+	cout << "Favor updated...\n";
+	cout << targeting(first_player->left, 1)->tag << endl;
+	*/
 	return 0;
 }
 
@@ -1011,6 +1016,7 @@ int getBehaviorModifier(player *currPlayer, int dieValue)
 
 player *targeting(player *currPlayer, int dieValue)
 {
+	cout << "Targeting... \n";
 	int hp = currPlayer->hp;
 	int maxhp = currPlayer->maxhp;
 	switch(dieValue)
