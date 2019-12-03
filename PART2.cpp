@@ -93,7 +93,7 @@ int arrowsRemaining = 9;                //the number of remaining arrow tokens
 die *dice[MAX];                         //keep the dice value
 int winCondition = GAME_CONTINUE;       //win condition = 4
 int initial_playerCount;                //initial player amount
-favor *favorGraph = NULL;
+favor *favorGraph = NULL;				//structure to hold favor graph
 
 
 int main() {
@@ -453,7 +453,6 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
 // PURPOSE: create new player node
 player *createPlayer(int position) {
     player *newPlayer = (player*)malloc(sizeof(player));
-    int initial_playerCout = (rand() % (8 - 4 + 1)) + 4;
     newPlayer->hp = 9;
     newPlayer->maxhp = 9;
     newPlayer->arrowsHeld = 0;
@@ -533,7 +532,6 @@ player *generatePlayers(int playerCount) {
 // PURPOSE: assign different random roles for each player
 void assign_role(player *current_player, int total_playerCount) {
     int role_position = (rand() % (3 - 0 + 1)) + 0;
-    int i;
     if(role_available[role_position] != false) {
     }
     else if(role_available[role_position] == false) {
@@ -652,6 +650,10 @@ int role_reveal(int position) {
     return current->role;
 }
 
+// NAME : validRightTarget
+// INPUT PARAMETERS: current player pointer
+// OUTPUT: player pointer to the right of current.
+// PURPOSE: Find the next valid target.
 player *validRightTarget(player *currPlayer)
 {
 	player *assign = currPlayer->right;
@@ -661,6 +663,10 @@ player *validRightTarget(player *currPlayer)
 	}
 	return assign;
 }
+// NAME : validLeftTarget
+// INPUT PARAMETERS: current player pointer
+// OUTPUT: player pointer to the left of current.
+// PURPOSE: Find the next valid target.
 player *validLeftTarget(player *currPlayer)
 {
 	player *assign = currPlayer->left;
@@ -671,6 +677,10 @@ player *validLeftTarget(player *currPlayer)
 	return assign;
 }
 //Use for Shoot 1
+// NAME : findNemesis1
+// INPUT PARAMETERS: current player pointer
+// OUTPUT: least favored player pointer in range 1.
+// PURPOSE: Directs the targeting method for shoot1 dice.
 player *findNemesis1(player *currPlayer)
 {
 	int favorLeft = favorGraph->values[currPlayer->tag][validLeftTarget(currPlayer)->tag];
@@ -681,6 +691,10 @@ player *findNemesis1(player *currPlayer)
 		return validRightTarget(currPlayer);
 }
 //Use for Shoot 2
+// NAME : findNemesis2
+// INPUT PARAMETERS: current player pointer
+// OUTPUT: least favored player pointer in range 2.
+// PURPOSE: Directs the targeting method for shoot2 dice.
 player *findNemesis2(player *currPlayer)
 {
 	int favorLeft = favorGraph->values[currPlayer->tag][validLeftTarget(validLeftTarget(currPlayer))->tag];
@@ -690,6 +704,10 @@ player *findNemesis2(player *currPlayer)
 	else
 		return validRightTarget(validRightTarget(currPlayer));
 }
+// NAME : findLowestAlly
+// INPUT PARAMETERS: current player pointer
+// OUTPUT: lowestHP Favored player pointer
+// PURPOSE: directs the targeting method for heal dice.
 player *findLowestAlly(player *currPlayer)
 {
 	//cout << "Finding lowest ally" <<endl;
@@ -798,6 +816,10 @@ void print_graph()
 	}
 }
 
+// NAME : getBehaviorModifier
+// INPUT PARAMETERS: current player pointer, die Value
+// OUTPUT: an integer to be rolled against. Higher values increase the odds of rerolling.
+// PURPOSE: Handles the likelihood that a player of a given role locks in a dice, according to their goals.
 int getBehaviorModifier(player *currPlayer, int dieValue)
 {
 	cout << "Finding behavior modifier \n";
@@ -969,6 +991,10 @@ int getBehaviorModifier(player *currPlayer, int dieValue)
 	return be;
 }
 
+// NAME : targeting
+// INPUT PARAMETERS: current player pointer, die Value
+// OUTPUT: a target player pointer
+// PURPOSE: directs targeting for any player of any role.
 player *targeting(player *currPlayer, int dieValue)
 {
 	cout << "Targeting... \n";
@@ -1104,6 +1130,12 @@ player *targeting(player *currPlayer, int dieValue)
 
 //update graph
 //change favor point to the actor based on what action actor did to the target
+
+// NAME : updateFavor
+// INPUT PARAMETERS: actor player pointer, target player pointer, option value.
+// OUTPUT: N/A
+// SIDE EFFECT: Updates a global favor graph with values whenever an action is taken
+// PURPOSE: Handles how players react to eachother.
 void updateFavor(player *actor, player *target, int option) {
     //option 0 = heal, 1 = shoot
     player *current = actor->left;
