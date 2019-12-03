@@ -76,6 +76,7 @@ int role_reveal(int position);
 //decision
 player *targeting(player *currPlayer, int dieValue);
 void updateFavor(player *actor, player *target, int option);
+player *validLeftTarget(player *currPlayer);
 
 
 
@@ -114,7 +115,7 @@ int main() {
         cout << ">>>>Round: " << round_count << endl;
         for(int i = 0; i < initial_playerCount; i++) {
             resolveDice(current, 0, initial_playerCount);
-            current = current->left;
+            current = validLeftTarget(current);
             cout << endl;
             display(first_player);
             cout << endl;
@@ -168,14 +169,7 @@ void resolveArrows(player *currPlayer) {
 // OUTPUT: none 
 // PURPOSE: Heal random target 1 hp when it triggered. 
 void giveBeer(player *currPlayer, int total_playerCount) {
-    int target_position = rand() % total_playerCount;
-    player *recipient = currPlayer;
-    while(player_dead_status[target_position] != false) {
-        target_position = rand() % total_playerCount;
-    }
-    while(recipient->tag != target_position) {
-        recipient = recipient->right;
-    }
+    player *recipient = targeting(currPlayer, BEER);
     if(recipient->hp != recipient->maxhp) {
 		cout << ">>Recipient " << recipient->tag << " was healed" << endl;
         recipient->hp++;
@@ -613,7 +607,10 @@ void display(player *first_player) {
     cout << ">>>Current Player List Status<<<" << endl;
     do {
         cout << "Player " << current->tag << " Role: " << current->role;
-        cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
+		if(current->hp == 0)
+			cout << "\t DEAD"<<endl;
+		else
+			cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
         current = current->left;
     }while(current->tag != 0);
     cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl;
@@ -695,15 +692,18 @@ player *findNemesis2(player *currPlayer)
 }
 player *findLowestAlly(player *currPlayer)
 {
+	//cout << "Finding lowest ally" <<endl;
 	//Check players with favor greater than 65.
 	player *allies[4];
 	player *check = first_player;
 	int index = 0;
 	for(int i = 0; i < initial_playerCount; i++)
 	{
-		if(favorGraph->values[currPlayer->tag][i] > 65 && currPlayer->tag != i)
+		//cout << "Checking favor value of Player " << i << " with Player " << currPlayer->tag<<endl;
+		if(favorGraph->values[currPlayer->tag][i] > 65 && currPlayer->tag != i && check->hp != 0)
 		{
 			allies[index] = check;
+			//cout << "Player " << check->tag << " added to allies array. \n";
 		}
 		check = check->left;
 	}
@@ -714,7 +714,7 @@ player *findLowestAlly(player *currPlayer)
 	//and sheriff will not be passed to the allies array.
 	int minHP = 11;
 	int curMin;
-	for(int i = 0; i < 4; i++)
+	for(int i = 0; i < index; i++)
 	{
 		curMin = allies[i]->hp;
 		if(allies[i]->role == SHERIFF)
@@ -800,6 +800,7 @@ void print_graph()
 
 int getBehaviorModifier(player *currPlayer, int dieValue)
 {
+	cout << "Finding behavior modifier \n";
 	int be = 0; 
 	//Creates a number based off of role and die type that a random 1d6 checks against. 
 	//Higher values make it less likely that a die will be locked.
