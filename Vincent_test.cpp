@@ -634,3 +634,141 @@ void clearDice(die *dice[]) {
 		dice[i]->val = 0;
 	}
 }
+
+/*
+//FOR Part 2 resolve dice
+// NAME : resolveDice
+// INPUT PARAMETERS: currPlayer, reroll_count, total_playerCount
+// OUTPUT: none
+// PURPOSE: resolve the dice for current player
+void resolveDice(player *currPlayer, int reroll_count, int total_playerCount) {
+    int gats = 0;       //Holds Amount of Gatling Die
+    int dyna = 0;       //Holds Amount of Dynamite Die
+    int bullet_1 = 0;
+    int bullet_2 = 0;
+    int beer = 0;
+    int reroll_option;
+    bool reroll_record = false;
+    rollDice(currPlayer);
+    for(int i= 0; i < MAX; i++) {
+        if(dice[i]->val == ARROW) {
+            currPlayer->arrowsHeld++;
+            arrowsRemaining--;
+            if(arrowsRemaining == 0) {
+			    resolveArrows(currPlayer);
+                winCondition = checkVictoryConditions(currPlayer);
+                if(winCondition != GAME_CONTINUE) {
+                    return;
+                }
+		    }
+        }
+        else if(dice[i]->val == DYNAMITE) {
+            dice[i]->locked = true;
+            dyna++;
+            if(dyna == 3) {
+                kaboom(currPlayer);
+                winCondition = checkVictoryConditions(currPlayer);
+                if(winCondition != GAME_CONTINUE) {
+                    return;
+                }
+            }
+        }
+    }
+    while(reroll_count < 2) {
+        for(int i = 0; i < MAX; i++) {
+            reroll_option = (rand() % 2) + 1;
+            //rerolling
+            if(reroll_option == 1 && dice[i]->locked == false && dyna < 3) {
+                dice[i]->val = (rand() % (5 - 0 + 1)) + 0;
+                if(dice[i]->val == ARROW) {
+                    currPlayer->arrowsHeld++;
+                    arrowsRemaining--;
+                    if(arrowsRemaining == 0) {
+                        resolveArrows(currPlayer);
+                        winCondition = checkVictoryConditions(currPlayer);
+                        if(winCondition != GAME_CONTINUE) {
+                            return;
+                        }
+                    }
+                }
+                else if(dice[i]->val == DYNAMITE) {
+                    dice[i]->locked = true;
+                    dyna++;
+                    if(dyna == 3) {
+                        kaboom(currPlayer);
+                        winCondition = checkVictoryConditions(currPlayer);
+                        if(winCondition != GAME_CONTINUE) {
+                            return;
+                        }
+                    }
+                }
+                reroll_record = true;
+            }
+            //dont want to reroll
+            else {
+                dice[i]->locked = true;
+            }
+            if(reroll_count == 1) {
+                dice[i]->locked = true;
+            }
+        }
+        reroll_count++;
+    }
+    for(int i = 0; i < MAX; i++) {
+        switch (dice[i]->val) {
+            case GATLING:
+            {
+                gats++;
+                if(gats == 3) {
+                    gatling(currPlayer);
+                    winCondition = checkVictoryConditions(currPlayer);
+                    if(winCondition != GAME_CONTINUE) {
+                        return;
+                    }
+                }
+                break;
+            }
+            case BEER:
+            {
+                beer++;
+                break;
+            }
+            case SHOOT_1:
+            {
+                bullet_1++;
+                break;
+            }
+            case SHOOT_2:
+            {
+                bullet_2++;
+                break;
+            }
+        }
+    }
+    if(reroll_record == true) {
+        cout << "Updated dice result:\t";
+        for(int i = 0; i < MAX; i++) {
+                cout << dice[i]->val << "\t";
+        }
+        cout << endl;
+    }
+    for(int i = 0; i < bullet_1; i++) {
+        shoot(currPlayer, 1, total_playerCount);
+        winCondition = checkVictoryConditions(currPlayer);
+        if(winCondition != GAME_CONTINUE) {
+            return;
+        }
+    }
+    for(int i = 0; i < bullet_2; i++) {
+        shoot(currPlayer, 2, total_playerCount);
+        winCondition = checkVictoryConditions(currPlayer);
+        if(winCondition != GAME_CONTINUE) {
+            return;
+        }
+    }
+    for(int i = 0; i < beer; i++) {
+        giveBeer(currPlayer, total_playerCount);
+    }
+    clearDice(dice);
+}
+*/
