@@ -330,8 +330,8 @@ void resolveDice(player *currPlayer, int reroll_count, int total_playerCount) {
     bool reroll_record = false;
     rollDice(currPlayer);
     for(int i = 0; i < MAX; i++) {
-        reroll_option = (rand() % (2 - 1 + 1)) + 1;
-        if(reroll_count < 2 && dice[i]->val != DYNAMITE && reroll_option == 1) {
+        reroll_option = (rand() % 2) + 1;
+        if(reroll_count < 2 && dice[i]->val != DYNAMITE && reroll_option < 1) {
             if(dice[i]->val == ARROW) {
                 currPlayer->arrowsHeld++;
                 arrowsRemaining--;
@@ -350,7 +350,9 @@ void resolveDice(player *currPlayer, int reroll_count, int total_playerCount) {
             i--;
             continue;
         }
-        else if(reroll_option == 2) {
+        else
+		{
+			cout << "Die " << i+1 << " was locked in at " << dice[i]->val<<endl;
             reroll_count = 0;
         }
         switch (dice[i]->val) {
@@ -441,60 +443,8 @@ void resolveDice(player *currPlayer, int reroll_count, int total_playerCount) {
 // OUTPUT: none
 // PURPOSE: shoot either left or right of range one and two when it triggered
 void shoot(player *currPlayer, int diceVal, int total_playerCount) {
-    int random_target = (rand() % (2 - 1 + 1)) + 1;
-    int alive_playerCount = 0;
-	player *target;
-	player *current = currPlayer;
-    for(int i = 0; i < total_playerCount; i++) {
-        if(player_dead_status[i] == false)
-            alive_playerCount++;
-    }
-    if(diceVal == 1) {
-        if(random_target == 1) {
-            while(player_dead_status[current->right->tag] != false) {
-                current = current->right;
-            }
-            target = current->right;
-            cout << ">>Player "<< target->tag << " got shot." << endl;
-        }
-        else {
-            while(player_dead_status[current->left->tag] != false) {
-                current = current->left;
-            }
-            target = current->left;
-            cout << ">>Player "<< target->tag << " got shot." << endl;
-        }
-	}
-    else if(diceVal == 2) {
-        if(alive_playerCount == 2 || alive_playerCount == 3) {
-            shoot(currPlayer, 1, total_playerCount);
-            return;
-        }
-        else {
-            if(random_target == 1) {
-                while(player_dead_status[current->right->tag] != false) {
-                    current = current->right;
-                }
-                current = current->right;
-                while(player_dead_status[current->right->tag] != false) {
-                    current = current->right;
-                }
-                target = current->right;
-                cout << ">>Player "<< target->tag << " got shot." << endl;
-            }
-            else {
-                while(player_dead_status[current->left->tag] != false) {
-                    current = current->left;
-                }
-                current = current->left;
-                while(player_dead_status[current->left->tag] != false) {
-                    current = current->left;
-                }
-                target = current->left;
-                cout << ">>Player "<< target->tag << " got shot." << endl;
-            }
-        }
-    }
+	player *target = targeting(currPlayer, diceVal);
+	cout << "Player " << target->tag << " was shot by Player " << currPlayer->tag <<endl;
     if(target->tag == currPlayer->tag)
         return;
     (target->hp)--;
@@ -880,52 +830,56 @@ int getBehaviorModifier(player *currPlayer, int dieValue)
 	switch(currPlayer->role)
 	{
 		case SHERIFF:
-		cout << "Sheriff's Resolve"<<endl;
-		//The sheriff will prioritize healing himself. He won't attack targets that have healed him recently.
-		//Will always trigger gatling when available.
-		switch(dieValue)
 		{
-			case BEER:
-			if(currPlayer->hp < currPlayer->maxhp)
-				be = 0;
-			else
-				be = 7;
-			break;
-			case SHOOT_1:
-				be = 3;
-			break;
-			case SHOOT_2:
-				be = 3;
-			break;
-			case GATLING:
-			//Priority
-				be = 0;
-			break;
+			cout << "Sheriff's Resolve"<<endl;
+			//The sheriff will prioritize healing himself. He won't attack targets that have healed him recently.
+			//Will always trigger gatling when available.
+			switch(dieValue)
+			{
+				case BEER:
+				if(currPlayer->hp < currPlayer->maxhp)
+					be = 0;
+				else
+					be = 7;
+				break;
+				case SHOOT_1:
+					be = 3;
+				break;
+				case SHOOT_2:
+					be = 3;
+				break;
+				case GATLING:
+				//Priority
+					be = 0;
+				break;
+			}
 		}
 		break;
 		case DEPUTY:
-		cout << "Deputy's Reasoning"<<endl;
-		//Deputies will prioritize healing the sheriff, and themselves if they fall low.
-		//If they have to shoot, the sheriff will never be targeted.
-		switch(dieValue)
 		{
-			case BEER:
-			//Prioritized
-			if(sheriff->hp < sheriff->maxhp || currPlayer->hp < (currPlayer->maxhp / 3))
-				be = 0;
-			else
-			//No Use, may need to check for favored players
-				be = 7;
-			break;
-			case SHOOT_1:
-				be = 3;
-			break;
-			case SHOOT_2:
-				be = 3;
-			break;
-			case GATLING:
-				be = 0;
-			break;
+			cout << "Deputy's Reasoning"<<endl;
+			//Deputies will prioritize healing the sheriff, and themselves if they fall low.
+			//If they have to shoot, the sheriff will never be targeted.
+			switch(dieValue)
+			{
+				case BEER:
+				//Prioritized
+				if(sheriff->hp < sheriff->maxhp || currPlayer->hp < (currPlayer->maxhp / 3))
+					be = 0;
+				else
+				//No Use, may need to check for favored players
+					be = 7;
+				break;
+				case SHOOT_1:
+					be = 3;
+				break;
+				case SHOOT_2:
+					be = 3;
+				break;
+				case GATLING:
+					be = 0;
+				break;
+			}
 		}
 		break;
 		case OUTLAW:
@@ -934,81 +888,81 @@ int getBehaviorModifier(player *currPlayer, int dieValue)
 		switch(dieValue)
 		{
 			case BEER:
-			if(currPlayer->hp < (currPlayer->hp/2))
-				be = 0;
-			else
-				be = 2;
+				if(currPlayer->hp < (currPlayer->hp/2))
+					be = 0;
+				else
+					be = 2;
 			break;
 			//Shoot cases need to determine available targets. Outlaws will always lock if the sheriff can be hit.
 			//They will only occasionally lock if the sheriff is not a valid target.
 			case SHOOT_1:
-			if(sheriffTargetable == 1)
-				be = 0;
-			else
-				be = 2;
+				if(sheriffTargetable == 1)
+					be = 0;
+				else
+					be = 2;
 			break;
 			case SHOOT_2:
-			if(sheriffTargetable == 2)
-				be = 0;
-			else
-				be = 3;
+				if(sheriffTargetable == 2)
+					be = 0;
+				else
+					be = 3;
 			break;
 			//Outlaws play on a team usually larger than the Law's. They will avoid gatling under most circumstances.
 			//They are more likely to use the gatling if they have too many arrows, the sheriff is not a valid target, or they are outnumbered.
 			case GATLING:
-			be = 7;
-			//Check team sized;
-			if(outlaws_count <= deputy_count + 1)
-				be -= 3;
-			//Check if sheriff is not 1 or 2 spaces away.
-			if(sheriffTargetable == 0)
-				be -= 1;
-			if(currPlayer->arrowsHeld > 3)
-				be -= 3;
+				be = 7;
+				//Check team sized;
+				if(outlaws_count <= deputy_count + 1)
+					be -= 3;
+				//Check if sheriff is not 1 or 2 spaces away.
+				if(sheriffTargetable == 0)
+					be -= 1;
+				if(currPlayer->arrowsHeld > 3)
+					be -= 3;
 			break;
 		}
 		break;
 		case RENEGADE:
-		cout << "Renegade's Rage"<<endl;
-		//Renegades prioritize healing themselves. They will start healing the sheriff if he falls below half health.
-		//Will always trigger gatling when available. Will always attack the lowest hp target on his target list.
-		switch(dieValue)
-		{
-			case BEER:
-			//Prioritized
-			if(currPlayer->hp < currPlayer->maxhp)
-				be = 0;
-			else if(sheriff->hp < (sheriff->maxhp/2)) //AND there are less dead Outlaws than Starting.
-				//Will Heal Sheriff to keep the game going. 
-				be = 0;
-			else
-				be = 7;
-			break;
-			case SHOOT_1:
-			//Check for lowest target, still a likely lockin. Outprioritized by gatling.
-			if(lowestPlayerTargetable / 2 == 0)
-				be = 0;
-			else
-				be = 4;
-			break;
-			case SHOOT_2:
-			//Check for lowest target, still a likely lockin
-			if(lowestPlayerTargetable / 2 == 1)
-				be = 0;
-			else
-				be = 4;
-			break;
-			case GATLING:
-			//Prioritized
-				be = 0;
-			break;
-		}
+			cout << "Renegade's Rage"<<endl;
+			//Renegades prioritize healing themselves. They will start healing the sheriff if he falls below half health.
+			//Will always trigger gatling when available. Will always attack the lowest hp target on his target list.
+			switch(dieValue)
+			{
+				case BEER:
+				//Prioritized
+				if(currPlayer->hp < currPlayer->maxhp)
+					be = 0;
+				else if(sheriff->hp < (sheriff->maxhp/2)) //AND there are less dead Outlaws than Starting.
+					//Will Heal Sheriff to keep the game going. 
+					be = 0;
+				else
+					be = 7;
+				break;
+				case SHOOT_1:
+				//Check for lowest target, still a likely lockin. Outprioritized by gatling.
+				if(lowestPlayerTargetable / 2 == 0)
+					be = 0;
+				else
+					be = 4;
+				break;
+				case SHOOT_2:
+				//Check for lowest target, still a likely lockin
+				if(lowestPlayerTargetable / 2 == 1)
+					be = 0;
+				else
+					be = 4;
+				break;
+				case GATLING:
+				//Prioritized
+					be = 0;
+				break;
+			}
 		break;
 	}
 	if(dieValue == DYNAMITE)
-		be = 7;
-	if(dieValue == ARROW)
 		be = 0;
+	if(dieValue == ARROW)
+		be = 7;
 	//Arrows have no utility and will always be rerolled.
 	//Dynamite forces the die to lock.
 	return be;
