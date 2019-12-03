@@ -33,7 +33,6 @@ typedef struct player{
     int role;
     int ability;
 	int tag;
-    string player_name;
     player *left;
     player *right;
 }player;
@@ -43,7 +42,7 @@ typedef struct player{
 player *createPlayer(int position);
 player *generatePlayers(int playerCount);
 void assign_role(player *current_player, int total_playerCount);
-string name_assign(player *currPlayer);
+string name_display(int position);
 //functions for roll and resolve the dices
 void initializeDice(die *dice[]);
 void rollDice(player *currPlayer);
@@ -74,6 +73,8 @@ int arrowsRemaining = 9;                //the number of remaining arrow tokens
 die *dice[MAX];                         //keep the dice value
 int winCondition = GAME_CONTINUE;       //win condition = 4
 int initial_playerCount = 4;
+string name_list[8] = {"Vincent","Tyler","Rishabh","John","Rosa","Monica","Lisa","Albert"};
+string name_join[8];
 
 int main() {
     srand(time(0));
@@ -86,6 +87,7 @@ int main() {
     display(first_player);
     //finished generating players in the game
     //game start
+    /*
     cout << endl << "****Game Start****" << endl;
     current = first_player;
     while(winCondition == GAME_CONTINUE) {
@@ -105,6 +107,7 @@ int main() {
         round_count++;
     }
     //end of game
+    */
     return 0;
 }
 
@@ -475,10 +478,6 @@ player *createPlayer(int position) {
     newPlayer->tag = position;
     newPlayer->left = NULL;
     newPlayer->right = NULL;
-    string naming = name_assign(newPlayer);
-    //cout << "got name:" << naming << endl;
-    //newPlayer->player_name = "test";
-    // cout << "assigned: " << newPlayer->player_name << endl;
     return newPlayer;
 }
 
@@ -486,14 +485,13 @@ player *createPlayer(int position) {
 // INPUT PARAMETERS: currPlayer
 // OUTPUT: none
 // PURPOSE: give random player name to each player
-string name_assign(player *currPlayer) {
-    string name_list[8] = {"Vincent","Tyler","Rishabh","John","Rosa","Monica","Lisa","Albert"};
+string name_display(int position) {
     int index_namelist = (rand() % (7 - 0 + 1)) + 0;
     while(name_check[index_namelist] != false) {
         index_namelist = (rand() % (7 - 0 + 1)) + 0;
-        cout << "finding another" << endl;
     }
     name_check[index_namelist] = true;
+    name_join[position] = 
     return name_list[index_namelist];
 }
 
@@ -504,14 +502,14 @@ string name_assign(player *currPlayer) {
 player *generatePlayers(int playerCount) {
     player *new_player, *prev_player;
 
-    //cout << "Creating root player:" << endl;
+    cout << "Creating root player:" << endl;
 
     first_player = createPlayer(0);
     assign_role(first_player, playerCount);
     prev_player = first_player;
     for(int i = 1; i < playerCount; i++) {
 
-        //cout << "*** Creating player:*** " << i << endl;
+        cout << "*** Creating player:*** " << i << endl;
 
         new_player = createPlayer(i);
         assign_role(new_player, playerCount);
@@ -519,7 +517,7 @@ player *generatePlayers(int playerCount) {
         prev_player->left = new_player;
         prev_player = new_player;
 
-        //cout << "*** end of creating player *** " << i << endl;
+        cout << "*** end of creating player *** " << i << endl;
     }
     prev_player->left = first_player;
     first_player->right = prev_player;

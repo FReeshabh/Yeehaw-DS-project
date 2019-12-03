@@ -71,6 +71,7 @@ void print_graph();
 int role_reveal(int position);
 //decision
 int decision(int dice_val, player *currPlayer, int alive_count);
+void updateFavor(player *actor, player *target, int option);
 
 //Variables 
 player *first_player = NULL;            //first player as root
@@ -101,6 +102,7 @@ int main() {
     cout << endl << ">>>>Game Start<<<<" << endl;
     current = first_player;
     
+    
     /*while(winCondition == GAME_CONTINUE) {
         cout << ">>>>Round: " << round_count << endl;
         for(int i = 0; i < initial_playerCount; i++) {
@@ -123,6 +125,10 @@ int main() {
     cout << endl << ">>ERROR: graph testing"<<endl;
 	generate_graph();
 	print_graph();
+    cout << endl;
+    cout << endl;
+    updateFavor(first_player, sheriff, 1);
+    print_graph();
 	return 0;
 }
 
