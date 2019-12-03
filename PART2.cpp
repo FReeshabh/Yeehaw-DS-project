@@ -39,6 +39,10 @@ typedef struct player{
     player *right;
 }player;
 
+typedef struct favor{
+	int values[8][8];
+} favor;
+
 //Headers
 //create player functions
 player *createPlayer(int position);
@@ -70,8 +74,10 @@ void generate_graph();
 void print_graph();
 int role_reveal(int position);
 //decision
-int decision(int dice_val, player *currPlayer, int alive_count);
+player *targeting(player *currPlayer, int dieValue);
 void updateFavor(player *actor, player *target, int option);
+
+
 
 //Variables 
 player *first_player = NULL;            //first player as root
@@ -86,7 +92,8 @@ int arrowsRemaining = 9;                //the number of remaining arrow tokens
 die *dice[MAX];                         //keep the dice value
 int winCondition = GAME_CONTINUE;       //win condition = 4
 int initial_playerCount;                //initial player amount
-int favorGraph[8][8];
+favor *favorGraph = NULL;
+
 
 int main() {
     srand(time(0));
@@ -714,8 +721,8 @@ player *validLeftTarget(player *currPlayer)
 //Use for Shoot 1
 player *findNemesis1(player *currPlayer)
 {
-	int favorLeft = favorGraph[currPlayer->tag][validLeftTarget(currPlayer)->tag];
-	int favorRight = favorGraph[currPlayer->tag][validRightTarget(currPlayer)->tag];
+	int favorLeft = favorGraph->values[currPlayer->tag][validLeftTarget(currPlayer)->tag];
+	int favorRight = favorGraph->values[currPlayer->tag][validRightTarget(currPlayer)->tag];
 	if(favorLeft < favorRight)
 		return validLeftTarget(currPlayer);
 	else
@@ -724,8 +731,8 @@ player *findNemesis1(player *currPlayer)
 //Use for Shoot 2
 player *findNemesis2(player *currPlayer)
 {
-	int favorLeft = favorGraph[currPlayer->tag][validLeftTarget(validLeftTarget(currPlayer))->tag];
-	int favorRight = favorGraph[currPlayer->tag][validRightTarget(validRightTarget(currPlayer))->tag];
+	int favorLeft = favorGraph->values[currPlayer->tag][validLeftTarget(validLeftTarget(currPlayer))->tag];
+	int favorRight = favorGraph->values[currPlayer->tag][validRightTarget(validRightTarget(currPlayer))->tag];
 	if(favorLeft < favorRight)
 		return validLeftTarget(validLeftTarget(currPlayer));
 	else
@@ -739,7 +746,7 @@ player *findLowestAlly(player *currPlayer)
 	int index = 0;
 	for(int i = 0; i < initial_playerCount; i++)
 	{
-		if(favorGraph[currPlayer->tag][i] > 65 && currPlayer->tag != i)
+		if(favorGraph->values[currPlayer->tag][i] > 65 && currPlayer->tag != i)
 		{
 			allies[index] = check;
 		}
@@ -773,6 +780,7 @@ player *findLowestAlly(player *currPlayer)
 // OUTPUT: none
 // PURPOSE: generate the graph
 void generate_graph() {
+	favorGraph = (favor *)malloc(sizeof(favor));
     player *current = first_player;
 	player *target = first_player;
 	for(int i = 0; i < initial_playerCount; i++)
@@ -784,37 +792,37 @@ void generate_graph() {
 				case SHERIFF:
 				{
 					if(deputy_count == 0)
-						favorGraph[i][j] = 0;
+						favorGraph->values[i][j] = 0;
 					else
-						favorGraph[i][j] = 50;
+						favorGraph->values[i][j] = 50;
 				}
 				break;
 				case DEPUTY:
 				{
 					if(deputy_count < 2)
-						favorGraph[i][j] = 0;
+						favorGraph->values[i][j] = 0;
 					if(deputy_count == 2)
-						favorGraph[i][j] = 50;
+						favorGraph->values[i][j] = 50;
 					if(target->role == SHERIFF)
-						favorGraph[i][j] = 100;
+						favorGraph->values[i][j] = 100;
 				}
 				break;
 				case OUTLAW:
 				{
 					if(target->role == SHERIFF)
-						favorGraph[i][j] = 0;
+						favorGraph->values[i][j] = 0;
 					else
-						favorGraph[i][j] = 50;
+						favorGraph->values[i][j] = 50;
 				}
 				break;
 				case RENEGADE:
 				{
-					favorGraph[i][j] = 0;
+					favorGraph->values[i][j] = 0;
 				}
 				break;
 			}
 			if(current->tag == target->tag)
-				favorGraph[i][j] = 100;
+				favorGraph->values[i][j] = 100;
 			target = target->left;
 		}
 		current = current->left;
@@ -826,9 +834,10 @@ void print_graph()
 {
 	for(int i = 0; i < initial_playerCount; i++)
 	{
+		cout << "Player " << i <<": ";
 		for(int j = 0; j < initial_playerCount; j++)
 		{
-			cout << favorGraph[i][j] << "\t";
+			cout << favorGraph->values[i][j] << "\t";
 		}
 		cout << endl;
 	}
@@ -1131,3 +1140,143 @@ player *targeting(player *currPlayer, int dieValue)
 	cout << "ERROR: Fallout of targeting function " << endl;
 	return NULL;
 }
+
+//update graph
+//change favor point to the actor based on what action actor did to the target
+void updateFavor(player *actor, player *target, int option) {
+    //option 0 = heal, 1 = shoot
+    player *current = actor->left;
+    if(actor == target) {
+        cout << "**Error: updateFavor actor == target" << endl;
+        return;
+    }
+    if(option == 0) {
+        switch (target->role)
+        {
+        case SHERIFF:
+            while(current != actor) {
+                switch (current->role)
+                {
+                case SHERIFF:
+                    if(deputy_count >= 1) {
+                        if(favorGraph->values[current->tag][actor->tag] != 100) {
+                            favorGraph->values[current->tag][actor->tag] += 12;
+                            if(favorGraph->values[current->tag][actor->tag] > 99)
+                                favorGraph->values[current->tag][actor->tag] = 99;
+                        }
+
+                    }
+                    break;
+                case DEPUTY:
+                    if(deputy_count > 1) {
+                        if(favorGraph->values[current->tag][actor->tag] != 100) {
+                            favorGraph->values[current->tag][actor->tag] += 12;
+                            if(favorGraph->values[current->tag][actor->tag] > 99)
+                                favorGraph->values[current->tag][actor->tag] = 99;
+                        }
+                    }
+                    break;
+                case OUTLAW:
+                    if(favorGraph->values[current->tag][actor->tag] != 0) {
+                        favorGraph->values[current->tag][actor->tag] -= 12;
+                        if(favorGraph->values[current->tag][actor->tag] < 1) {
+                            favorGraph->values[current->tag][actor->tag] = 1;
+                        }
+                    }
+
+                    break;
+                case RENEGADE:
+                    //Reegade dont change favor to the actor
+                    break;
+                }
+                current = current->left;
+            }
+            break;
+        case DEPUTY:
+            if(favorGraph->values[current->tag][actor->tag] != 100) {
+                favorGraph->values[target->tag][actor->tag] += 12;
+                if(favorGraph->values[target->tag][actor->tag] > 99) {
+                    favorGraph->values[target->tag][actor->tag] = 99;
+                }
+            }
+            break;
+        case OUTLAW:
+            if(favorGraph->values[current->tag][actor->tag] != 100) {
+                favorGraph->values[target->tag][actor->tag] += 12;
+                if(favorGraph->values[target->tag][actor->tag] > 99) {
+                    favorGraph->values[target->tag][actor->tag] = 99;
+                }
+            }
+            break;
+        case RENEGADE:
+            //renegade dont change
+            break;
+        default:
+            cout << "**Error: updateFavor option 0 switch default" << endl;
+            break;
+        }
+    }
+    else if(option == 1) {
+        switch (target->role)
+        {
+        case SHERIFF:
+            while(current != actor) {
+                switch (current->role)
+                {
+                case SHERIFF:
+                    if(favorGraph->values[current->tag][actor->tag] != 0) {
+                        favorGraph->values[current->tag][actor->tag] -= 15;
+                        if(favorGraph->values[current->tag][actor->tag] < 1) {
+                            favorGraph->values[current->tag][actor->tag] = 1;
+                        }
+                    }
+                    break;
+                case DEPUTY:
+                    if(favorGraph->values[current->tag][actor->tag] != 0) {
+                        favorGraph->values[current->tag][actor->tag] -= 15;
+                        if(favorGraph->values[current->tag][actor->tag] < 1) {
+                            favorGraph->values[current->tag][actor->tag] = 1;
+                        }
+                    }
+                    break;
+                case OUTLAW:
+                    if (favorGraph->values[current->tag][actor->tag] != 100) {
+                        favorGraph->values[current->tag][actor->tag] += 15;
+                        if(favorGraph->values[current->tag][actor->tag] > 99) {
+                            favorGraph->values[current->tag][actor->tag] = 99;
+                        }
+                    }
+                    break;
+                case RENEGADE:
+                    //renegage dont change favor
+                    break;
+                }
+                current = current->left;
+            }
+            break;
+        case DEPUTY:
+            if(favorGraph->values[current->tag][actor->tag] != 0) {
+                favorGraph->values[target->tag][actor->tag] -= 15;
+                if(favorGraph->values[target->tag][actor->tag] < 1) {
+                    favorGraph->values[target->tag][actor->tag] = 1;
+                }
+            }
+            break;
+        case OUTLAW:
+            if(favorGraph->values[current->tag][actor->tag] != 0) {
+                favorGraph->values[target->tag][actor->tag] -= 15;
+                if(favorGraph->values[target->tag][actor->tag] < 1) {
+                    favorGraph->values[target->tag][actor->tag] = 1;
+                }
+            }
+            break;
+        case RENEGADE:
+            //renegade dont change favor point
+            break;
+        default:
+            cout << "**Error: updateFavor option 1 switch default" << endl;
+            break;
+        }
+    }
+}
+
