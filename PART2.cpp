@@ -76,6 +76,7 @@ int role_reveal(int position);
 //decision
 player *targeting(player *currPlayer, int dieValue);
 void updateFavor(player *actor, player *target, int option);
+player *validLeftTarget(player *currPlayer);
 
 
 
@@ -92,7 +93,7 @@ int arrowsRemaining = 9;                //the number of remaining arrow tokens
 die *dice[MAX];                         //keep the dice value
 int winCondition = GAME_CONTINUE;       //win condition = 4
 int initial_playerCount;                //initial player amount
-favor *favorGraph = NULL;
+favor *favorGraph = NULL;				//structure to hold favor graph
 
 
 int main() {
@@ -114,7 +115,7 @@ int main() {
         cout << ">>>>Round: " << round_count << endl;
         for(int i = 0; i < initial_playerCount; i++) {
             resolveDice(current, 0, initial_playerCount);
-            current = current->left;
+            current = validLeftTarget(current);
             cout << endl;
             display(first_player);
             cout << endl;
@@ -168,14 +169,7 @@ void resolveArrows(player *currPlayer) {
 // OUTPUT: none 
 // PURPOSE: Heal random target 1 hp when it triggered. 
 void giveBeer(player *currPlayer, int total_playerCount) {
-    int target_position = rand() % total_playerCount;
-    player *recipient = currPlayer;
-    while(player_dead_status[target_position] != false) {
-        target_position = rand() % total_playerCount;
-    }
-    while(recipient->tag != target_position) {
-        recipient = recipient->right;
-    }
+    player *recipient = targeting(currPlayer, BEER);
     if(recipient->hp != recipient->maxhp) {
 		cout << ">>Recipient " << recipient->tag << " was healed" << endl;
         recipient->hp++;
@@ -330,8 +324,8 @@ void resolveDice(player *currPlayer, int reroll_count, int total_playerCount) {
     bool reroll_record = false;
     rollDice(currPlayer);
     for(int i = 0; i < MAX; i++) {
-        reroll_option = (rand() % 2) + 1;
-        if(reroll_count < 2 && dice[i]->val != DYNAMITE && reroll_option < 1) {
+        reroll_option = (rand() % 6) + 1;
+        if(reroll_count < 2 && dice[i]->val != DYNAMITE && reroll_option < getBehaviorModifier(currPlayer, dice[i]->val)) {
             if(dice[i]->val == ARROW) {
                 currPlayer->arrowsHeld++;
                 arrowsRemaining--;
@@ -459,7 +453,6 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
 // PURPOSE: create new player node
 player *createPlayer(int position) {
     player *newPlayer = (player*)malloc(sizeof(player));
-    int initial_playerCout = (rand() % (8 - 4 + 1)) + 4;
     newPlayer->hp = 9;
     newPlayer->maxhp = 9;
     newPlayer->arrowsHeld = 0;
@@ -539,7 +532,6 @@ player *generatePlayers(int playerCount) {
 // PURPOSE: assign different random roles for each player
 void assign_role(player *current_player, int total_playerCount) {
     int role_position = (rand() % (3 - 0 + 1)) + 0;
-    int i;
     if(role_available[role_position] != false) {
     }
     else if(role_available[role_position] == false) {
@@ -613,7 +605,10 @@ void display(player *first_player) {
     cout << ">>>Current Player List Status<<<" << endl;
     do {
         cout << "Player " << current->tag << " Role: " << current->role;
-        cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
+		if(current->hp == 0)
+			cout << "\t DEAD"<<endl;
+		else
+			cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
         current = current->left;
     }while(current->tag != 0);
     cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<" << endl;
@@ -655,6 +650,10 @@ int role_reveal(int position) {
     return current->role;
 }
 
+// NAME : validRightTarget
+// INPUT PARAMETERS: current player pointer
+// OUTPUT: player pointer to the right of current.
+// PURPOSE: Find the next valid target.
 player *validRightTarget(player *currPlayer)
 {
 	player *assign = currPlayer->right;
@@ -664,6 +663,10 @@ player *validRightTarget(player *currPlayer)
 	}
 	return assign;
 }
+// NAME : validLeftTarget
+// INPUT PARAMETERS: current player pointer
+// OUTPUT: player pointer to the left of current.
+// PURPOSE: Find the next valid target.
 player *validLeftTarget(player *currPlayer)
 {
 	player *assign = currPlayer->left;
@@ -674,6 +677,10 @@ player *validLeftTarget(player *currPlayer)
 	return assign;
 }
 //Use for Shoot 1
+// NAME : findNemesis1
+// INPUT PARAMETERS: current player pointer
+// OUTPUT: least favored player pointer in range 1.
+// PURPOSE: Directs the targeting method for shoot1 dice.
 player *findNemesis1(player *currPlayer)
 {
 	int favorLeft = favorGraph->values[currPlayer->tag][validLeftTarget(currPlayer)->tag];
@@ -684,6 +691,10 @@ player *findNemesis1(player *currPlayer)
 		return validRightTarget(currPlayer);
 }
 //Use for Shoot 2
+// NAME : findNemesis2
+// INPUT PARAMETERS: current player pointer
+// OUTPUT: least favored player pointer in range 2.
+// PURPOSE: Directs the targeting method for shoot2 dice.
 player *findNemesis2(player *currPlayer)
 {
 	int favorLeft = favorGraph->values[currPlayer->tag][validLeftTarget(validLeftTarget(currPlayer))->tag];
@@ -693,17 +704,24 @@ player *findNemesis2(player *currPlayer)
 	else
 		return validRightTarget(validRightTarget(currPlayer));
 }
+// NAME : findLowestAlly
+// INPUT PARAMETERS: current player pointer
+// OUTPUT: lowestHP Favored player pointer
+// PURPOSE: directs the targeting method for heal dice.
 player *findLowestAlly(player *currPlayer)
 {
+	//cout << "Finding lowest ally" <<endl;
 	//Check players with favor greater than 65.
 	player *allies[4];
 	player *check = first_player;
 	int index = 0;
 	for(int i = 0; i < initial_playerCount; i++)
 	{
-		if(favorGraph->values[currPlayer->tag][i] > 65 && currPlayer->tag != i)
+		//cout << "Checking favor value of Player " << i << " with Player " << currPlayer->tag<<endl;
+		if(favorGraph->values[currPlayer->tag][i] > 65 && currPlayer->tag != i && check->hp != 0)
 		{
 			allies[index] = check;
+			//cout << "Player " << check->tag << " added to allies array. \n";
 		}
 		check = check->left;
 	}
@@ -714,7 +732,7 @@ player *findLowestAlly(player *currPlayer)
 	//and sheriff will not be passed to the allies array.
 	int minHP = 11;
 	int curMin;
-	for(int i = 0; i < 4; i++)
+	for(int i = 0; i < index; i++)
 	{
 		curMin = allies[i]->hp;
 		if(allies[i]->role == SHERIFF)
@@ -798,8 +816,13 @@ void print_graph()
 	}
 }
 
+// NAME : getBehaviorModifier
+// INPUT PARAMETERS: current player pointer, die Value
+// OUTPUT: an integer to be rolled against. Higher values increase the odds of rerolling.
+// PURPOSE: Handles the likelihood that a player of a given role locks in a dice, according to their goals.
 int getBehaviorModifier(player *currPlayer, int dieValue)
 {
+	cout << "Finding behavior modifier \n";
 	int be = 0; 
 	//Creates a number based off of role and die type that a random 1d6 checks against. 
 	//Higher values make it less likely that a die will be locked.
@@ -968,6 +991,10 @@ int getBehaviorModifier(player *currPlayer, int dieValue)
 	return be;
 }
 
+// NAME : targeting
+// INPUT PARAMETERS: current player pointer, die Value
+// OUTPUT: a target player pointer
+// PURPOSE: directs targeting for any player of any role.
 player *targeting(player *currPlayer, int dieValue)
 {
 	cout << "Targeting... \n";
@@ -1103,6 +1130,12 @@ player *targeting(player *currPlayer, int dieValue)
 
 //update graph
 //change favor point to the actor based on what action actor did to the target
+
+// NAME : updateFavor
+// INPUT PARAMETERS: actor player pointer, target player pointer, option value.
+// OUTPUT: N/A
+// SIDE EFFECT: Updates a global favor graph with values whenever an action is taken
+// PURPOSE: Handles how players react to eachother.
 void updateFavor(player *actor, player *target, int option) {
     //option 0 = heal, 1 = shoot
     player *current = actor->left;
