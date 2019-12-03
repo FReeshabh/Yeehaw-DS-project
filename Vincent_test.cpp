@@ -7,6 +7,7 @@
 #include <malloc.h>
 #include <time.h>
 #include <string.h>
+#include <iomanip>
 #define MAX 5
 #define SHERIFF  0
 #define DEPUTY   1
@@ -33,6 +34,7 @@ typedef struct player{
     int role;
     int ability;
 	int tag;
+    int nameIndex;
     player *left;
     player *right;
 }player;
@@ -42,7 +44,7 @@ typedef struct player{
 player *createPlayer(int position);
 player *generatePlayers(int playerCount);
 void assign_role(player *current_player, int total_playerCount);
-string name_display(int position);
+int name_index();
 //functions for roll and resolve the dices
 void initializeDice(die *dice[]);
 void rollDice(player *currPlayer);
@@ -74,7 +76,6 @@ die *dice[MAX];                         //keep the dice value
 int winCondition = GAME_CONTINUE;       //win condition = 4
 int initial_playerCount = 4;
 string name_list[8] = {"Vincent","Tyler","Rishabh","John","Rosa","Monica","Lisa","Albert"};
-string name_join[8];
 
 int main() {
     srand(time(0));
@@ -87,7 +88,6 @@ int main() {
     display(first_player);
     //finished generating players in the game
     //game start
-    /*
     cout << endl << "****Game Start****" << endl;
     current = first_player;
     while(winCondition == GAME_CONTINUE) {
@@ -107,7 +107,6 @@ int main() {
         round_count++;
     }
     //end of game
-    */
     return 0;
 }
 
@@ -144,11 +143,11 @@ void giveBeer(player *currPlayer, int total_playerCount) {
         recipient = recipient->right;
     }
     if(recipient->hp != recipient->maxhp) {
-		cout << "Recipient " << recipient->tag << " was healed" << endl;
+		cout << "Recipient " << name_list[recipient->nameIndex] << " was healed" << endl;
         recipient->hp++;
 	}
 	else {
-		cout << "Recipient " << recipient->tag << " already maxed out" << endl;
+		cout << "Recipient " << name_list[recipient->nameIndex] << " already maxed out" << endl;
 	}
 }
 
@@ -247,7 +246,7 @@ void sixFeetUnder(player *deceased) {
 	if(deceased->hp < 0) {
 		deceased->hp = 0;
 	}
-	cout << "**Player " << deceased->tag << " has died." << endl;
+	cout << "**Player " << name_list[deceased->nameIndex] << " has died." << endl;
 	cout << "**They were a";
 	switch(deceased->role) {
 		case 0: cout << " sheriff.";
@@ -270,7 +269,7 @@ void sixFeetUnder(player *deceased) {
 // OUTPUT: output messages
 // PURPOSE: roll the dice and keep in dice array. 
 void rollDice(player *currPlayer) {
-    cout << "current player: " << currPlayer->tag << "\trole: " << currPlayer->role << " is rolling the dice." << endl;
+    cout << "current player: " << name_list[currPlayer->nameIndex] << " is rolling the dice." << endl;
     cout << "Current dice result:\t";
     for(int i = 0; i < MAX; i++) {
         dice[i]->val = (rand()%(5 - 0 + 1) + 0);
@@ -418,14 +417,14 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
                 current = current->right;
             }
             target = current->right;
-            cout << "Player "<< target->tag << " got shot." << endl;
+            cout << "Player "<< name_list[target->nameIndex] << " got shot." << endl;
         }
         else {
             while(player_dead_status[current->left->tag] != false) {
                 current = current->left;
             }
             target = current->left;
-            cout << "Player "<< target->tag << " got shot." << endl;
+            cout << "Player "<< name_list[target->nameIndex] << " got shot." << endl;
         }
 	}
     else if(diceVal == 2) {
@@ -443,7 +442,7 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
                     current = current->right;
                 }
                 target = current->right;
-                cout << "Player "<< target->tag << " got shot." << endl;
+                cout << "Player "<< name_list[target->nameIndex] << " got shot." << endl;
             }
             else {
                 while(player_dead_status[current->left->tag] != false) {
@@ -454,7 +453,7 @@ void shoot(player *currPlayer, int diceVal, int total_playerCount) {
                     current = current->left;
                 }
                 target = current->left;
-                cout << "Player "<< target->tag << " got shot." << endl;
+                cout << "Player "<< name_list[target->nameIndex] << " got shot." << endl;
             }
         }
     }
@@ -478,6 +477,7 @@ player *createPlayer(int position) {
     newPlayer->tag = position;
     newPlayer->left = NULL;
     newPlayer->right = NULL;
+    newPlayer->nameIndex = name_index();
     return newPlayer;
 }
 
@@ -485,14 +485,13 @@ player *createPlayer(int position) {
 // INPUT PARAMETERS: currPlayer
 // OUTPUT: none
 // PURPOSE: give random player name to each player
-string name_display(int position) {
+int name_index() {
     int index_namelist = (rand() % (7 - 0 + 1)) + 0;
     while(name_check[index_namelist] != false) {
         index_namelist = (rand() % (7 - 0 + 1)) + 0;
     }
     name_check[index_namelist] = true;
-    name_join[position] = 
-    return name_list[index_namelist];
+    return index_namelist;
 }
 
 // NAME : generatePlayers
@@ -501,23 +500,15 @@ string name_display(int position) {
 // PURPOSE: generate players in the game
 player *generatePlayers(int playerCount) {
     player *new_player, *prev_player;
-
-    cout << "Creating root player:" << endl;
-
     first_player = createPlayer(0);
     assign_role(first_player, playerCount);
     prev_player = first_player;
     for(int i = 1; i < playerCount; i++) {
-
-        cout << "*** Creating player:*** " << i << endl;
-
         new_player = createPlayer(i);
         assign_role(new_player, playerCount);
         new_player->right = prev_player;
         prev_player->left = new_player;
         prev_player = new_player;
-
-        cout << "*** end of creating player *** " << i << endl;
     }
     prev_player->left = first_player;
     first_player->right = prev_player;
@@ -604,7 +595,7 @@ void display(player *first_player) {
     cout << "***Current Player List Status***" << endl;
     int count = 0;
     do {
-        cout << "Player " << current->tag << " Role: " << current->role;
+        cout <<  "Player " << setw(9) << name_list[current->nameIndex];
         cout <<"\thp:" << current->hp << "/" << current->maxhp << endl;
         current = current->left;
         count = count + 1;

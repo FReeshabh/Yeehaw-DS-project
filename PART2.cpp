@@ -7,6 +7,7 @@
 #include <iostream>
 #include <time.h>
 #include <cstring>
+#include <iomanip>
 #define MAX 5
 #define SHERIFF  0
 #define DEPUTY   1
@@ -34,6 +35,7 @@ typedef struct player{
     int role;
     int ability;
 	int tag;
+    int nameIndex;
     string player_name;
     player *left;
     player *right;
@@ -48,7 +50,7 @@ typedef struct favor{
 player *createPlayer(int position);
 player *generatePlayers(int playerCount);
 void assign_role(player *current_player, int total_playerCount);
-void name_assign(player *currPlayer);
+int name_index();
 //functions for roll and resolve the dices
 void initializeDice(die *dice[]);
 void rollDice(player *currPlayer);
@@ -72,7 +74,6 @@ int getBehaviorModifier(player *currPlayer, int diceValue);
 //graph
 void generate_graph();
 void print_graph();
-int role_reveal(int position);
 //decision
 player *targeting(player *currPlayer, int dieValue);
 void updateFavor(player *actor, player *target, int option);
@@ -94,6 +95,7 @@ die *dice[MAX];                         //keep the dice value
 int winCondition = GAME_CONTINUE;       //win condition = 4
 int initial_playerCount;                //initial player amount
 favor *favorGraph = NULL;				//structure to hold favor graph
+string name_list[8] = {"Vincent","Tyler","Rishabh","John","Rosa","Monica","Lisa","Albert"};
 
 
 int main() {
@@ -106,12 +108,12 @@ int main() {
     first_player = generatePlayers(initial_playerCount);
 	generate_graph();
     display(first_player);
+    cout << "Player " << name_list[sheriff->nameIndex] << " is sheriff." << endl;
     //finished generating players in the game
     //game start
     cout << endl << ">>>>Game Start<<<<" << endl;
     current = first_player;
-	
-   while(winCondition == GAME_CONTINUE) {
+    while(winCondition == GAME_CONTINUE) {
         cout << ">>>>Round: " << round_count << endl;
         for(int i = 0; i < initial_playerCount; i++) {
             resolveDice(current, 0, initial_playerCount);
@@ -127,21 +129,7 @@ int main() {
         cout << endl;
         round_count++;
     }
-
     //end of game
-    //graph testing
-    //cout << endl << ">>ERROR: graph testing"<<endl;
-	/*print_graph();
-    cout << endl;
-    cout << endl;
-    updateFavor(first_player, sheriff, 1);
-    print_graph();*/
-	
-	//Targeting Testing:
-	/*updateFavor(first_player, first_player->left, 1);
-	cout << "Favor updated...\n";
-	cout << targeting(first_player->left, 1)->tag << endl;
-	*/
 	return 0;
 }
 
@@ -154,7 +142,7 @@ void resolveArrows(player *currPlayer) {
 	player *current = currPlayer;
 	do {
 		current->hp -= current->arrowsHeld;
-		cout << ">>Player " << current->tag << " sustained " << current->arrowsHeld << " damage " <<endl;
+		cout << ">>Player " << name_list[current->nameIndex] << " sustained " << current->arrowsHeld << " damage " <<endl;
          	arrowsRemaining += current->arrowsHeld;
 		 if(current->hp <= 0) {
 			 sixFeetUnder(current);
@@ -171,11 +159,11 @@ void resolveArrows(player *currPlayer) {
 void giveBeer(player *currPlayer, int total_playerCount) {
     player *recipient = targeting(currPlayer, BEER);
     if(recipient->hp != recipient->maxhp) {
-		cout << ">>Recipient " << recipient->tag << " was healed" << endl;
+		cout << ">>Recipient " << name_list[recipient->nameIndex] << " was healed" << endl;
         recipient->hp++;
 	}
 	else {
-		cout << ">>Recipient " << recipient->tag << " already maxed out" << endl;
+		cout << ">>Recipient " << name_list[recipient->nameIndex] << " already maxed out" << endl;
 	}
 }
 
@@ -275,7 +263,7 @@ void sixFeetUnder(player *deceased) {
 	if(deceased->hp < 0) {
 		deceased->hp = 0;
 	}
-	cout << ">>Player " << deceased->tag << " has died." << endl;
+	cout << ">>Player " << name_list[deceased->nameIndex] << " has died." << endl;
 	cout << ">>They were a";
 	switch(deceased->role) {
 		case 0: cout << " sheriff.";
@@ -301,7 +289,7 @@ void sixFeetUnder(player *deceased) {
 // OUTPUT: output messages
 // PURPOSE: roll the dice and keep in dice array. 
 void rollDice(player *currPlayer) {
-    cout << "current player: " << currPlayer->tag << "\trole: " << currPlayer->role << " is rolling the dice." << endl;
+    cout << "current player: " << name_list[currPlayer->nameIndex] << " is rolling the dice." << endl;
     cout << "Current dice result:\t";
     for(int i = 0; i < MAX; i++) {
         dice[i]->val = (rand()%(5 - 0 + 1) + 0);
@@ -438,7 +426,7 @@ void resolveDice(player *currPlayer, int reroll_count, int total_playerCount) {
 // PURPOSE: shoot either left or right of range one and two when it triggered
 void shoot(player *currPlayer, int diceVal, int total_playerCount) {
 	player *target = targeting(currPlayer, diceVal);
-	cout << "Player " << target->tag << " was shot by Player " << currPlayer->tag <<endl;
+	cout << "Player " << name_list[target->nameIndex] << " was shot by Player " << name_list[currPlayer->nameIndex] <<endl;
     if(target->tag == currPlayer->tag)
         return;
     (target->hp)--;
@@ -457,10 +445,9 @@ player *createPlayer(int position) {
     newPlayer->maxhp = 9;
     newPlayer->arrowsHeld = 0;
     newPlayer->tag = position;
-    //newPlayer->player_name;
     newPlayer->left = NULL;
     newPlayer->right = NULL;
-    //name_assign(newPlayer);
+    newPlayer->nameIndex = name_index();
     return newPlayer;
 }
 
@@ -468,41 +455,13 @@ player *createPlayer(int position) {
 // INPUT PARAMETERS: currPlayer
 // OUTPUT: none
 // PURPOSE: give random player name to each player
-void name_assign(player *currPlayer) {
-    cout << "get in" << endl;
-    string name_list[8] = {"Vincent","Tyler","Rishabh","John","Rosa","Monica","Lisa","Albert"};
+int name_index() {
     int index_namelist = (rand() % (7 - 0 + 1)) + 0;
-    cout << "nameList available check: " << endl;
-    for(int i = 0; i < 8; i++) {
-        cout << "list pos (" << i << ") status: ";
-        if (name_check[index_namelist] != false) {
-            cout << "Used" << endl;
-        }
-        else if(name_check[index_namelist] == false) {
-            cout << "Available" << endl;
-        }
-    }
     while(name_check[index_namelist] != false) {
         index_namelist = (rand() % (7 - 0 + 1)) + 0;
-        cout << "finding another" << endl;
     }
     name_check[index_namelist] = true;
-    cout << "**New status: " << endl;
-    cout << "list pos (" << index_namelist << ") status: ";
-    if (name_check[index_namelist] != false) {
-            cout << "Used" << endl;
-    }
-    else if(name_check[index_namelist] == false) {
-        cout << "Available" << endl;
-    }
-    cout << "assigning the name: " << name_list[index_namelist] << endl;
-    cout << "target spot: " << currPlayer->player_name << endl;
-    currPlayer->player_name = name_list[index_namelist];
-    cout << "Assigned for player tag: ";
-    cout << currPlayer->tag << endl;
-    cout << " as ";
-    cout << currPlayer->player_name << endl;
-    cout << "leaving" << endl;
+    return index_namelist;
 }
 
 // NAME : generatePlayers
@@ -604,7 +563,7 @@ void display(player *first_player) {
     current = first_player;
     cout << ">>>Current Player List Status<<<" << endl;
     do {
-        cout << "Player " << current->tag << " Role: " << current->role;
+        cout << "Player " << setw(9) << name_list[current->nameIndex];
 		if(current->hp == 0)
 			cout << "\t DEAD"<<endl;
 		else
@@ -636,18 +595,6 @@ void clearDice(die *dice[]) {
 		dice[i]->locked = false;
 		dice[i]->val = 0;
 	}
-}
-
-// NAME : role_reveal
-// INPUT PARAMETERS: position
-// OUTPUT: integer
-// PURPOSE: Reveal the role of the player
-int role_reveal(int position) {
-    player *current = first_player;
-    while(current->tag != position) {
-        current = current->left;
-    }
-    return current->role;
 }
 
 // NAME : validRightTarget
